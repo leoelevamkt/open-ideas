@@ -1,53 +1,71 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
+import { toast } from "sonner";
+import { LogOut } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/perfil")({
   component: PerfilPage,
 });
 
 function PerfilPage() {
-  const { profile, refresh } = useAuth();
+  const { user, profile, role } = useAuth();
+  const qc = useQueryClient();
+  const navigate = useNavigate();
   const [name, setName] = useState(profile?.name ?? "");
-  const [avatar, setAvatar] = useState(profile?.avatar_label ?? "");
-  const [saving, setSaving] = useState(false);
 
-  async function save(e: React.FormEvent) {
-    e.preventDefault();
-    if (!profile) return;
-    setSaving(true);
-    const { error } = await supabase.from("profiles")
-      .update({ name, avatar_label: avatar })
-      .eq("id", profile.id);
-    setSaving(false);
-    if (error) toast.error(error.message);
-    else { toast.success("Perfil atualizado"); void refresh(); }
+  const save = useMutation({
+    mutationFn: async () => {
+      if (!user) return;
+      const avatar = name.slice(0, 2).toUpperCase();
+      const { error } = await supabase.from("profiles").update({ name, avatar_label: avatar }).eq("id", user.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["profile"] });
+      toast.success("Perfil atualizado");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  async function logout() {
+    await supabase.auth.signOut();
+    navigate({ to: "/auth", replace: true });
   }
 
   return (
-    <div className="p-6 max-w-lg">
-      <h2 className="text-2xl font-semibold mb-4">Meu perfil</h2>
-      <form onSubmit={save} className="space-y-4 bg-card border rounded-lg p-6">
+    <div className="p-6 max-w-xl space-y-6">
+      <h2 className="text-2xl font-semibold">Meu perfil</h2>
+
+      <div className="flex items-center gap-4">
+        <span className="size-16 rounded-full bg-primary text-primary-foreground grid place-items-center text-xl font-semibold">
+          {profile?.avatar_label ?? name.slice(0, 2).toUpperCase()}
+        </span>
         <div>
-          <label className="text-sm font-medium">E-mail</label>
-          <input value={profile?.email ?? ""} disabled className="w-full mt-1 border rounded-md px-3 py-2 bg-muted" />
+          <div className="font-medium">{profile?.email}</div>
+          <div className="text-sm text-muted-foreground capitalize">Perfil: {role}</div>
+        </div>
+      </div>
+
+      <div className="space-y-3 rounded-lg border bg-card p-5">
+        <div>
+          <label className="text-xs text-muted-foreground">Nome</label>
+          <input value={name} onChange={(e) => setName(e.target.value)} className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm" />
         </div>
         <div>
-          <label className="text-sm font-medium">Nome</label>
-          <input value={name} onChange={(e) => setName(e.target.value)}
-            className="w-full mt-1 border rounded-md px-3 py-2 bg-background" required />
+          <label className="text-xs text-muted-foreground">E-mail</label>
+          <input value={profile?.email ?? ""} disabled className="mt-1 w-full rounded-md border bg-muted px-3 py-2 text-sm text-muted-foreground" />
         </div>
-        <div>
-          <label className="text-sm font-medium">Iniciais do avatar</label>
-          <input value={avatar} maxLength={3} onChange={(e) => setAvatar(e.target.value.toUpperCase())}
-            className="w-full mt-1 border rounded-md px-3 py-2 bg-background" />
-        </div>
-        <button disabled={saving} className="bg-primary text-primary-foreground px-4 py-2 rounded-md disabled:opacity-50">
-          {saving ? "Salvando..." : "Salvar"}
+        <button onClick={() => save.mutate()} disabled={!name || save.isPending} className="rounded-md bg-primary text-primary-foreground px-3 py-2 text-sm disabled:opacity-50">
+          {save.isPending ? "Salvando..." : "Salvar alterações"}
         </button>
-      </form>
+      </div>
+
+      <button onClick={logout} className="inline-flex items-center gap-2 rounded-md border border-destructive text-destructive px-3 py-2 text-sm hover:bg-destructive/10">
+        <LogOut className="size-4" /> Sair
+      </button>
     </div>
   );
 }
