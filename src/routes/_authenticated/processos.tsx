@@ -41,7 +41,7 @@ function ProcessosPage() {
       </div>
       <div className="flex flex-col gap-2">
         {data.map((c: any) => (
-          <Link key={c.id} to={"/processos/$id" as any} params={{ id: c.id }} className="block">
+          <Link key={c.id} to={"/processos/$id" as any} params={{ id: c.id } as any} className="block">
             <Card className="transition hover:border-accent/50">
               <CardContent className="flex flex-col gap-1 p-4">
                 <div className="flex items-center justify-between gap-2">
