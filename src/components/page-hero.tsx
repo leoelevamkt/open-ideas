@@ -4,7 +4,6 @@ export function PageHero({ title, subtitle }: { title: string; subtitle?: string
   return (
     <section className="gold-topline relative overflow-hidden rounded-2xl bg-sidebar px-5 py-6 text-sidebar-foreground shadow-sm ring-1 ring-gold/15">
       <div aria-hidden className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-gold/20 blur-3xl" />
-      <img src="/brand-mark.png" alt="" aria-hidden className="pointer-events-none absolute -right-6 -top-8 h-40 w-40 opacity-20 mix-blend-luminosity" />
       <div className="relative flex flex-col gap-4">
         <div className="flex items-center gap-3">
           <BrandLogo variant="plate" className="h-11 w-fit px-3 py-1.5" />
