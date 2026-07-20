@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      bank_info: {
+        Row: {
+          account: string | null
+          account_type: string | null
+          agency: string | null
+          bank_name: string | null
+          document: string | null
+          holder: string | null
+          id: string
+          notes: string | null
+          pix_key: string | null
+          pix_type: string | null
+          updated_at: string
+        }
+        Insert: {
+          account?: string | null
+          account_type?: string | null
+          agency?: string | null
+          bank_name?: string | null
+          document?: string | null
+          holder?: string | null
+          id?: string
+          notes?: string | null
+          pix_key?: string | null
+          pix_type?: string | null
+          updated_at?: string
+        }
+        Update: {
+          account?: string | null
+          account_type?: string | null
+          agency?: string | null
+          bank_name?: string | null
+          document?: string | null
+          holder?: string | null
+          id?: string
+          notes?: string | null
+          pix_key?: string | null
+          pix_type?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       cases: {
         Row: {
           action_type: string | null
@@ -224,6 +266,72 @@ export type Database = {
             columns: ["case_id"]
             isOneToOne: false
             referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          amount: number
+          barcode: string | null
+          case_id: string | null
+          client_id: string
+          created_at: string
+          created_by: string | null
+          description: string
+          due_date: string
+          id: string
+          notes: string | null
+          paid_at: string | null
+          payment_link: string | null
+          pix_copy_paste: string | null
+          status: string
+        }
+        Insert: {
+          amount?: number
+          barcode?: string | null
+          case_id?: string | null
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          description: string
+          due_date: string
+          id?: string
+          notes?: string | null
+          paid_at?: string | null
+          payment_link?: string | null
+          pix_copy_paste?: string | null
+          status?: string
+        }
+        Update: {
+          amount?: number
+          barcode?: string | null
+          case_id?: string | null
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          due_date?: string
+          id?: string
+          notes?: string | null
+          paid_at?: string | null
+          payment_link?: string | null
+          pix_copy_paste?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
             referencedColumns: ["id"]
           },
         ]

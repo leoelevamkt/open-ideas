@@ -1,60 +1,96 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+import { Search, Scale } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { PageHero } from "@/components/page-hero";
+import { CaseFormDialog } from "@/components/dialogs/case-form-dialog";
 import { listCases, listCasesWithClient, getClientByUserId } from "@/lib/queries";
+import { useAuth } from "@/lib/auth-context";
+import { CASE_STATUSES } from "@/lib/constants";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { formatDate } from "@/lib/format";
 
-export const Route = createFileRoute("/_authenticated/processos")({
-  component: ProcessosPage,
-});
+export const Route = createFileRoute("/_authenticated/processos")({ component: ProcessosPage });
+
+function statusColor(s: string) {
+  if (s === "Em Andamento") return "bg-blue-100 text-blue-700";
+  if (s === "Audiência Marcada") return "bg-amber-100 text-amber-700";
+  if (s === "Sentenciado" || s === "Finalizado") return "bg-emerald-100 text-emerald-700";
+  if (s === "Arquivado") return "bg-muted text-muted-foreground";
+  return "bg-gold/15 text-gold-strong";
+}
 
 function ProcessosPage() {
-  const [role, setRole] = useState<"advogado" | "cliente" | null>(null);
+  const { user } = useAuth();
+  const isLawyer = user?.role === "advogado";
   const [clientId, setClientId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("todos");
+
   useEffect(() => {
-    (async () => {
-      const { data: s } = await supabase.auth.getSession();
-      const u = s.session?.user; if (!u) return;
-      const { data: r } = await supabase.from("user_roles").select("role").eq("user_id", u.id).maybeSingle();
-      const roleValue = (((r as any)?.role) ?? "cliente") as "advogado" | "cliente";
-      setRole(roleValue);
-      if (roleValue === "cliente") {
-        const c = await getClientByUserId(u.id);
-        setClientId(c?.id ?? null);
-      }
-    })();
-  }, []);
+    if (!user || isLawyer) return;
+    getClientByUserId(user.id).then(c => setClientId(c?.id ?? null));
+  }, [user, isLawyer]);
 
   const { data = [] } = useQuery({
-    enabled: !!role,
-    queryKey: ["cases", role, clientId],
-    queryFn: async () => role === "advogado" ? await listCasesWithClient() : await listCases(clientId ?? undefined),
+    enabled: !!user,
+    queryKey: ["cases", isLawyer, clientId],
+    queryFn: async () => isLawyer ? await listCasesWithClient() : await listCases(clientId ?? undefined),
+  });
+
+  const filtered = data.filter((c: any) => {
+    const q = search.toLowerCase();
+    const matchQ = !q || c.title.toLowerCase().includes(q) || c.number?.toLowerCase().includes(q);
+    const matchS = statusFilter === "todos" || c.status === statusFilter;
+    return matchQ && matchS;
   });
 
   return (
     <div className="flex flex-col gap-4">
-      <div>
-        <h1 className="font-heading text-2xl font-semibold">Processos</h1>
-        <p className="text-sm text-muted-foreground">Acompanhe todos os processos ativos.</p>
+      <PageHero title="Processos judiciais" subtitle="Acompanhe cada etapa com transparência." />
+      <div className="flex items-center gap-2">
+        <div className="relative flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input placeholder="Buscar por título ou número…" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+        </div>
+        {isLawyer && <CaseFormDialog />}
+      </div>
+      <div className="flex gap-1.5 overflow-x-auto pb-1 [&::-webkit-scrollbar]:hidden">
+        {(["todos", ...CASE_STATUSES] as const).map(s => (
+          <button key={s} onClick={() => setStatusFilter(s)}
+            className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium capitalize transition ${statusFilter === s ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
+            {s === "todos" ? "Todos" : s}
+          </button>
+        ))}
       </div>
       <div className="flex flex-col gap-2">
-        {data.map((c: any) => (
+        {filtered.map((c: any) => (
           <Link key={c.id} to={"/processos/$id" as any} params={{ id: c.id } as any} className="block">
-            <Card className="transition hover:border-accent/50">
-              <CardContent className="flex flex-col gap-1 p-4">
-                <div className="flex items-center justify-between gap-2">
-                  <p className="truncate text-sm font-semibold">{c.title}</p>
-                  <Badge variant="outline">{c.status}</Badge>
+            <Card className="transition hover:border-gold/50">
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground"><Scale className="size-4" /></div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="truncate text-sm font-semibold">{c.title}</p>
+                      <Badge className={statusColor(c.status)} variant="secondary">{c.status}</Badge>
+                    </div>
+                    <p className="mt-0.5 truncate font-mono text-xs text-muted-foreground">{c.number}</p>
+                    <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+                      {c.client_name && <span>Cliente: {c.client_name}</span>}
+                      {c.legal_area && <span>· {c.legal_area}</span>}
+                      {c.updated_at && <span>· Atualizado {formatDate(c.updated_at)}</span>}
+                    </div>
+                  </div>
                 </div>
-                <p className="truncate text-xs text-muted-foreground">Nº {c.number}</p>
-                {c.client_name && <p className="truncate text-xs text-muted-foreground">Cliente: {c.client_name}</p>}
               </CardContent>
             </Card>
           </Link>
         ))}
-        {data.length === 0 && <p className="text-sm text-muted-foreground">Nenhum processo cadastrado.</p>}
+        {filtered.length === 0 && <p className="py-8 text-center text-sm text-muted-foreground">Nenhum processo encontrado.</p>}
       </div>
     </div>
   );

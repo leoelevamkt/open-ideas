@@ -1,46 +1,82 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { listHearings } from "@/lib/queries";
+import { useEffect, useState } from "react";
+import { CalendarClock, MapPin, Video } from "lucide-react";
+import { PageHero } from "@/components/page-hero";
+import { HearingFormDialog } from "@/components/dialogs/hearing-form-dialog";
+import { listHearings, getClientByUserId } from "@/lib/queries";
+import { useAuth } from "@/lib/auth-context";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CalendarClock } from "lucide-react";
+import { formatDate, relativeDate } from "@/lib/format";
 
-export const Route = createFileRoute("/_authenticated/agenda")({
-  component: AgendaPage,
-});
+export const Route = createFileRoute("/_authenticated/agenda")({ component: AgendaPage });
 
 function AgendaPage() {
-  const { data = [] } = useQuery({ queryKey: ["hearings"], queryFn: () => listHearings() });
+  const { user } = useAuth();
+  const isLawyer = user?.role === "advogado";
+  const [clientId, setClientId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user || isLawyer) return;
+    getClientByUserId(user.id).then(c => setClientId(c?.id ?? null));
+  }, [user, isLawyer]);
+
+  const { data = [] } = useQuery({
+    enabled: !!user,
+    queryKey: ["hearings", isLawyer, clientId],
+    queryFn: () => listHearings(isLawyer ? undefined : clientId ?? undefined),
+  });
+
+  const today = new Date().toISOString().slice(0, 10);
+  const upcoming = data.filter((h: any) => h.hearing_date >= today);
+  const past = data.filter((h: any) => h.hearing_date < today);
+
   return (
     <div className="flex flex-col gap-4">
-      <div>
-        <h1 className="font-heading text-2xl font-semibold">Agenda e Audiências</h1>
-        <p className="text-sm text-muted-foreground">Compromissos organizados por data.</p>
-      </div>
-      <div className="flex flex-col gap-2">
-        {data.map((h: any) => (
-          <Card key={h.id}>
-            <CardContent className="flex items-start gap-3 p-4">
-              <div className="flex size-10 items-center justify-center rounded-xl bg-accent/15 text-accent">
-                <CalendarClock className="size-5" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center justify-between gap-2">
-                  <p className="truncate text-sm font-medium">{h.title}</p>
-                  <Badge variant="outline">{h.type}</Badge>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {new Date(h.hearing_date).toLocaleDateString("pt-BR")}
-                  {h.hearing_time ? ` · ${h.hearing_time}` : ""}
-                </p>
-                {h.case_title && <p className="truncate text-xs text-muted-foreground">Processo: {h.case_title}</p>}
-                {h.location && <p className="truncate text-xs text-muted-foreground">{h.location}</p>}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-        {data.length === 0 && <p className="text-sm text-muted-foreground">Nenhuma audiência agendada.</p>}
-      </div>
+      <PageHero title="Agenda e audiências" subtitle="Compromissos organizados por data." />
+      {isLawyer && <div className="flex justify-end"><HearingFormDialog /></div>}
+
+      <section className="flex flex-col gap-2">
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Próximas</h2>
+        {upcoming.length === 0 && <p className="text-sm text-muted-foreground">Nenhuma audiência agendada.</p>}
+        {upcoming.map((h: any) => <HearingCard key={h.id} h={h} />)}
+      </section>
+
+      {past.length > 0 && (
+        <section className="flex flex-col gap-2">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Realizadas</h2>
+          {past.slice(0, 10).map((h: any) => <HearingCard key={h.id} h={h} past />)}
+        </section>
+      )}
     </div>
+  );
+}
+
+function HearingCard({ h, past }: { h: any; past?: boolean }) {
+  return (
+    <Card className={past ? "opacity-70" : ""}>
+      <CardContent className="p-4">
+        <div className="flex items-start gap-3">
+          <div className="flex size-11 shrink-0 flex-col items-center justify-center rounded-xl bg-primary text-primary-foreground">
+            <span className="text-[10px] font-semibold uppercase">{new Date(h.hearing_date).toLocaleDateString("pt-BR",{month:"short"}).replace(".","")}</span>
+            <span className="text-lg font-bold leading-none">{new Date(h.hearing_date).getDate()}</span>
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-start justify-between gap-2">
+              <p className="truncate text-sm font-medium">{h.title}</p>
+              <Badge variant="outline">{h.type}</Badge>
+            </div>
+            <p className="text-xs text-muted-foreground">{formatDate(h.hearing_date)}{h.hearing_time ? ` · ${h.hearing_time.slice(0,5)}` : ""}{!past && ` · ${relativeDate(h.hearing_date)}`}</p>
+            {h.client_name && <p className="mt-0.5 truncate text-xs text-muted-foreground">Cliente: {h.client_name}</p>}
+            {h.case_title && <p className="truncate text-xs text-muted-foreground">Processo: {h.case_title}</p>}
+            <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1">
+              {h.location && <span className="inline-flex items-center gap-1 text-xs text-muted-foreground"><MapPin className="size-3" />{h.location}</span>}
+              {h.link && <a href={h.link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-gold-strong hover:underline"><Video className="size-3" />Acessar sala</a>}
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
