@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
-import { Send } from "lucide-react";
+import { Send, ArrowLeft } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/mensagens")({
   component: MensagensPage,
@@ -76,18 +76,31 @@ function MensagensPage() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
   }, [messages]);
 
+  const [showChat, setShowChat] = useState(false);
+  const activeContact = contacts?.find((c: any) => c.id === selected);
+
   return (
-    <div className="flex h-[calc(100vh-3.5rem)]">
-      <aside className="w-64 border-r bg-card overflow-y-auto">
-        <div className="p-3 border-b font-semibold text-sm">Contatos</div>
-        {!contacts?.length ? <p className="p-3 text-xs text-muted-foreground">Nenhum contato ainda.</p> : (
-          <ul>
+    <div className="-m-4 -mb-28 flex h-[calc(100dvh-3.5rem)] bg-background">
+      {/* Contacts list — full width on mobile, sidebar on md+ */}
+      <aside
+        className={`${showChat ? "hidden" : "flex"} md:flex w-full md:w-64 flex-col md:border-r bg-card overflow-y-auto`}
+      >
+        <div className="p-3 border-b font-semibold text-sm sticky top-0 bg-card">Contatos</div>
+        {!contacts?.length ? (
+          <p className="p-4 text-sm text-muted-foreground">Nenhum contato ainda.</p>
+        ) : (
+          <ul className="flex-1">
             {contacts.map((c: any) => (
               <li key={c.id}>
-                <button onClick={() => setSelected(c.id)} className={`w-full text-left px-3 py-2 flex items-center gap-2 hover:bg-muted/50 ${selected === c.id ? "bg-muted" : ""}`}>
-                  <span className="size-8 rounded-full bg-primary text-primary-foreground text-xs font-semibold grid place-items-center">{c.avatar_label ?? c.name?.slice(0, 2).toUpperCase()}</span>
-                  <div className="min-w-0">
-                    <div className="text-sm truncate">{c.name}</div>
+                <button
+                  onClick={() => { setSelected(c.id); setShowChat(true); }}
+                  className={`w-full text-left px-4 py-3 flex items-center gap-3 border-b border-border/60 hover:bg-muted/50 ${selected === c.id ? "bg-muted/40" : ""}`}
+                >
+                  <span className="size-10 shrink-0 rounded-full bg-primary text-primary-foreground text-xs font-semibold grid place-items-center">
+                    {c.avatar_label ?? c.name?.slice(0, 2).toUpperCase()}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-medium truncate">{c.name}</div>
                     <div className="text-xs text-muted-foreground truncate">{c.email}</div>
                   </div>
                 </button>
@@ -97,29 +110,65 @@ function MensagensPage() {
         )}
       </aside>
 
-      <section className="flex-1 flex flex-col">
+      {/* Conversation — full width on mobile when a contact is picked */}
+      <section className={`${showChat ? "flex" : "hidden"} md:flex flex-1 flex-col min-w-0`}>
+        {activeContact && (
+          <div className="flex items-center gap-2 border-b bg-card px-3 py-2">
+            <button
+              onClick={() => setShowChat(false)}
+              className="md:hidden flex size-9 items-center justify-center rounded-md hover:bg-muted"
+              aria-label="Voltar"
+            >
+              <ArrowLeft className="size-4" />
+            </button>
+            <span className="size-9 shrink-0 rounded-full bg-primary text-primary-foreground text-xs font-semibold grid place-items-center">
+              {activeContact.avatar_label ?? activeContact.name?.slice(0, 2).toUpperCase()}
+            </span>
+            <div className="min-w-0">
+              <div className="text-sm font-medium truncate">{activeContact.name}</div>
+              <div className="text-xs text-muted-foreground truncate">{activeContact.email}</div>
+            </div>
+          </div>
+        )}
         <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-2 bg-muted/20">
-          {!selected ? <p className="text-muted-foreground text-sm">Selecione um contato.</p> :
-            !messages?.length ? <p className="text-muted-foreground text-sm">Nenhuma mensagem ainda.</p> :
+          {!selected ? (
+            <p className="text-muted-foreground text-sm">Selecione um contato.</p>
+          ) : !messages?.length ? (
+            <p className="text-muted-foreground text-sm">Nenhuma mensagem ainda.</p>
+          ) : (
             messages.map((m: any) => {
               const mine = m.sender_id === user?.id;
               return (
                 <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
-                  <div className={`max-w-[70%] rounded-lg px-3 py-2 text-sm ${mine ? "bg-primary text-primary-foreground" : "bg-card border"}`}>
-                    <div>{m.body}</div>
+                  <div className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm ${mine ? "bg-primary text-primary-foreground rounded-br-sm" : "bg-card border rounded-bl-sm"}`}>
+                    <div className="break-words">{m.body}</div>
                     <div className={`text-[10px] mt-1 ${mine ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
-                      {new Date(m.created_at).toLocaleString("pt-BR")}
+                      {new Date(m.created_at).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
                     </div>
                   </div>
                 </div>
               );
-            })}
+            })
+          )}
         </div>
         {selected && (
-          <form onSubmit={(e) => { e.preventDefault(); send.mutate(); }} className="flex gap-2 p-3 border-t bg-background">
-            <input value={text} onChange={(e) => setText(e.target.value)} placeholder="Digite uma mensagem..." className="flex-1 rounded-md border bg-background px-3 py-2 text-sm" />
-            <button type="submit" disabled={!text.trim() || send.isPending} className="rounded-md bg-primary text-primary-foreground px-3 py-2 text-sm inline-flex items-center gap-1 disabled:opacity-50">
-              <Send className="size-4" /> Enviar
+          <form
+            onSubmit={(e) => { e.preventDefault(); send.mutate(); }}
+            className="flex gap-2 p-3 border-t bg-background safe-bottom"
+          >
+            <input
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder="Digite uma mensagem..."
+              className="flex-1 min-w-0 rounded-full border bg-background px-4 py-2 text-sm"
+            />
+            <button
+              type="submit"
+              disabled={!text.trim() || send.isPending}
+              className="shrink-0 rounded-full bg-primary text-primary-foreground size-10 grid place-items-center disabled:opacity-50"
+              aria-label="Enviar"
+            >
+              <Send className="size-4" />
             </button>
           </form>
         )}
