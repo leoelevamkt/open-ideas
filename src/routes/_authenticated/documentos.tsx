@@ -1,40 +1,78 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { listDocuments } from "@/lib/queries";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { FileText, Search, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { PageHero } from "@/components/page-hero";
+import { DocumentFormDialog } from "@/components/dialogs/document-form-dialog";
+import { listDocuments, deleteDocument, getClientByUserId } from "@/lib/queries";
+import { useAuth } from "@/lib/auth-context";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { FileText } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { formatDate } from "@/lib/format";
 
-export const Route = createFileRoute("/_authenticated/documentos")({
-  component: DocumentosPage,
-});
+export const Route = createFileRoute("/_authenticated/documentos")({ component: DocumentosPage });
 
 function DocumentosPage() {
-  const { data = [] } = useQuery({ queryKey: ["documents"], queryFn: () => listDocuments() });
+  const { user } = useAuth();
+  const isLawyer = user?.role === "advogado";
+  const [clientId, setClientId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const qc = useQueryClient();
+
+  useEffect(() => {
+    if (!user || isLawyer) return;
+    getClientByUserId(user.id).then(c => setClientId(c?.id ?? null));
+  }, [user, isLawyer]);
+
+  const { data = [] } = useQuery({
+    enabled: !!user,
+    queryKey: ["documents", isLawyer, clientId],
+    queryFn: () => listDocuments(isLawyer ? undefined : { clientId: clientId ?? undefined }),
+  });
+
+  const filtered = data.filter((d: any) =>
+    d.name.toLowerCase().includes(search.toLowerCase()) ||
+    (d.client_name ?? "").toLowerCase().includes(search.toLowerCase())
+  );
+
+  async function onDelete(id: string) {
+    if (!confirm("Excluir este documento?")) return;
+    try { await deleteDocument(id); toast.success("Documento removido."); qc.invalidateQueries({ queryKey: ["documents"] }); }
+    catch (e: any) { toast.error(e.message); }
+  }
+
   return (
     <div className="flex flex-col gap-4">
-      <div>
-        <h1 className="font-heading text-2xl font-semibold">Documentos</h1>
-        <p className="text-sm text-muted-foreground">Central de documentos do escritório.</p>
+      <PageHero title="Central de documentos" subtitle="Contratos, petições e comprovantes protegidos." />
+      <div className="flex items-center gap-2">
+        <div className="relative flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input placeholder="Buscar documento…" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+        </div>
+        {isLawyer && <DocumentFormDialog />}
       </div>
       <div className="flex flex-col gap-2">
-        {data.map((d: any) => (
+        {filtered.map((d: any) => (
           <Card key={d.id}>
             <CardContent className="flex items-center gap-3 p-4">
-              <div className="flex size-10 items-center justify-center rounded-xl bg-accent/15 text-accent">
-                <FileText className="size-5" />
-              </div>
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-gold/15 text-gold-strong"><FileText className="size-5" /></div>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium">{d.name}</p>
                 <p className="truncate text-xs text-muted-foreground">
-                  {d.category}{d.client_name ? ` · ${d.client_name}` : ""}
+                  {d.category}{d.client_name ? ` · ${d.client_name}` : ""} · {formatDate(d.created_at)}
                 </p>
               </div>
               <Badge variant={d.status === "disponivel" ? "default" : "secondary"}>{d.status}</Badge>
+              {isLawyer && (
+                <Button variant="ghost" size="icon" onClick={() => onDelete(d.id)} className="size-8 text-destructive"><Trash2 className="size-4" /></Button>
+              )}
             </CardContent>
           </Card>
         ))}
-        {data.length === 0 && <p className="text-sm text-muted-foreground">Nenhum documento.</p>}
+        {filtered.length === 0 && <p className="py-8 text-center text-sm text-muted-foreground">Nenhum documento.</p>}
       </div>
     </div>
   );
