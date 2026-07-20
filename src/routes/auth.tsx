@@ -34,89 +34,116 @@ function AuthPage() {
         navigate({ to: "/dashboard" });
       } else {
         const { error } = await supabase.auth.signUp({
-          email,
-          password,
+          email, password,
           options: {
             emailRedirectTo: `${window.location.origin}/`,
             data: { name, role },
           },
         });
         if (error) throw error;
-        toast.success("Conta criada! Verifique seu e-mail se a confirmação estiver ativada.");
+        toast.success("Conta criada!");
         navigate({ to: "/dashboard" });
       }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Erro na autenticação";
-      toast.error(msg);
+      toast.error(err instanceof Error ? err.message : "Erro na autenticação");
     } finally {
       setSubmitting(false);
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-6">
-      <div className="w-full max-w-md bg-card border rounded-2xl shadow-xl p-8">
-        <div className="flex flex-col items-center mb-6">
-          <BrandLogo />
-          <h1 className="text-2xl font-semibold mt-4">
-            {mode === "login" ? "Entrar" : "Criar conta"}
-          </h1>
-          <p className="text-sm text-muted-foreground">Portal Jurídico</p>
-        </div>
-        <form onSubmit={onSubmit} className="space-y-4">
-          {mode === "signup" && (
-            <>
-              <div>
-                <label className="text-sm font-medium">Nome</label>
-                <input
-                  required value={name} onChange={(e) => setName(e.target.value)}
-                  className="w-full mt-1 border rounded-md px-3 py-2 bg-background"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Você é</label>
-                <select
-                  value={role} onChange={(e) => setRole(e.target.value as "advogado" | "cliente")}
-                  className="w-full mt-1 border rounded-md px-3 py-2 bg-background"
+    <div className="app-ambient">
+      <main className="app-frame flex min-h-[100dvh] flex-col bg-background">
+        {/* Cabeçalho de marca */}
+        <section className="relative flex flex-col items-center gap-6 rounded-b-3xl bg-sidebar px-6 pb-10 pt-14 text-center text-sidebar-foreground safe-top">
+          <BrandLogo variant="plate" className="h-20 px-5 py-3" />
+          <div className="max-w-xs">
+            <h1 className="text-balance text-xl font-semibold leading-snug">
+              Seu processo, sempre na palma da mão.
+            </h1>
+            <p className="mt-2 text-pretty text-sm leading-relaxed text-sidebar-foreground/70">
+              Acompanhe processos, audiências e documentos e fale direto com seu advogado.
+            </p>
+          </div>
+        </section>
+
+        {/* Formulário */}
+        <section className="flex flex-1 flex-col justify-center px-5 py-8">
+          <div className="rounded-lg border border-border bg-card text-card-foreground shadow-sm">
+            <div className="p-6">
+              <h2 className="text-2xl font-semibold text-foreground">
+                {mode === "login" ? "Acessar plataforma" : "Criar conta"}
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {mode === "login" ? "Entre com suas credenciais para continuar." : "Preencha seus dados para começar."}
+              </p>
+
+              <form onSubmit={onSubmit} className="mt-6 flex flex-col gap-4">
+                {mode === "signup" && (
+                  <>
+                    <div className="flex flex-col gap-2">
+                      <label className="text-sm font-medium">Nome</label>
+                      <input
+                        required value={name} onChange={(e) => setName(e.target.value)}
+                        className="h-10 rounded-md border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <label className="text-sm font-medium">Você é</label>
+                      <select
+                        value={role} onChange={(e) => setRole(e.target.value as "advogado" | "cliente")}
+                        className="h-10 rounded-md border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+                      >
+                        <option value="cliente">Cliente</option>
+                        <option value="advogado">Advogado(a)</option>
+                      </select>
+                    </div>
+                  </>
+                )}
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-medium">E-mail</label>
+                  <input
+                    type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
+                    placeholder="seu@email.com"
+                    className="h-10 rounded-md border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-medium">Senha</label>
+                  <input
+                    type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)}
+                    className="h-10 rounded-md border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+                  />
+                </div>
+
+                <button
+                  type="submit" disabled={submitting}
+                  className="h-10 w-full rounded-md bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 disabled:opacity-50 transition"
                 >
-                  <option value="cliente">Cliente</option>
-                  <option value="advogado">Advogado</option>
-                </select>
+                  {submitting ? "Aguarde..." : mode === "login" ? "Entrar" : "Criar conta"}
+                </button>
+              </form>
+
+              <div className="mt-4 text-center text-sm">
+                {mode === "login" ? (
+                  <button className="text-foreground underline underline-offset-4" onClick={() => setMode("signup")}>
+                    Não tem conta? Criar
+                  </button>
+                ) : (
+                  <button className="text-foreground underline underline-offset-4" onClick={() => setMode("login")}>
+                    Já tem conta? Entrar
+                  </button>
+                )}
               </div>
-            </>
-          )}
-          <div>
-            <label className="text-sm font-medium">E-mail</label>
-            <input
-              type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
-              className="w-full mt-1 border rounded-md px-3 py-2 bg-background"
-            />
+            </div>
           </div>
-          <div>
-            <label className="text-sm font-medium">Senha</label>
-            <input
-              type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)}
-              className="w-full mt-1 border rounded-md px-3 py-2 bg-background"
-            />
-          </div>
-          <button
-            type="submit" disabled={submitting}
-            className="w-full bg-primary text-primary-foreground rounded-md py-2 font-medium disabled:opacity-50"
-          >
-            {submitting ? "Aguarde..." : mode === "login" ? "Entrar" : "Criar conta"}
-          </button>
-        </form>
-        <div className="mt-4 text-center text-sm">
-          {mode === "login" ? (
-            <button className="text-primary" onClick={() => setMode("signup")}>Não tem conta? Criar</button>
-          ) : (
-            <button className="text-primary" onClick={() => setMode("login")}>Já tem conta? Entrar</button>
-          )}
-        </div>
-        <div className="mt-2 text-center text-xs text-muted-foreground">
-          <Link to="/">← Voltar</Link>
-        </div>
-      </div>
+        </section>
+
+        <p className="px-6 pb-8 text-center text-xs text-muted-foreground safe-bottom">
+          © {new Date().getFullYear()} Guimarães & Guedes Advocacia.{" "}
+          <Link to="/" className="underline underline-offset-2">Início</Link>
+        </p>
+      </main>
     </div>
   );
 }
