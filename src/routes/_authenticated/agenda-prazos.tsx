@@ -34,7 +34,7 @@ function AgendaPrazosPage() {
   }, [data, today, in7]);
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6">
       <h2 className="text-2xl font-semibold">Agenda de Prazos</h2>
       {isLoading && <p className="text-muted-foreground">Carregando...</p>}
 

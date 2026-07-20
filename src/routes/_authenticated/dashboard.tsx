@@ -58,7 +58,7 @@ function Dashboard() {
   });
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-semibold">Olá, {profile?.name?.split(" ")[0] ?? "usuário"}</h2>
         <p className="text-sm text-muted-foreground capitalize">Perfil: {role}</p>

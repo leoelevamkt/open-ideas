@@ -48,7 +48,7 @@ function NotificacoesPage() {
   const unread = (data ?? []).filter((n: any) => !n.read).length;
 
   return (
-    <div className="p-6 space-y-4 max-w-3xl">
+    <div className="space-y-4 max-w-3xl">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-2xl font-semibold">Notificações {unread > 0 && <span className="text-sm text-muted-foreground">({unread} não lidas)</span>}</h2>
         {unread > 0 && (

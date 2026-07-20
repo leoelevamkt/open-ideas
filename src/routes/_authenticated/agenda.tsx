@@ -33,7 +33,7 @@ function AgendaPage() {
   const past = (data ?? []).filter((h: any) => h.hearing_date < today);
 
   return (
-    <div className="p-6 space-y-4">
+    <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-2xl font-semibold">Agenda e Audiências</h2>
         {isAdvogado && (
