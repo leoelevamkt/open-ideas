@@ -44,7 +44,7 @@ function ProcessosPage() {
         <h2 className="text-xl sm:text-2xl font-semibold truncate">Processos</h2>
         {isAdvogado && (
           <button onClick={() => setShowNew(true)} className="shrink-0 inline-flex items-center gap-1 rounded-md bg-primary text-primary-foreground px-3 py-2 text-sm font-medium">
-            <Plus className="size-4" /> <span className="hidden xs:inline">Novo</span><span className="hidden sm:inline">&nbsp;processo</span>
+            <Plus className="size-4" /> Novo<span className="hidden sm:inline"><span className="hidden xs:inline">Novo</span><span className="hidden sm:inline">&nbsp;processo</span>nbsp;processo</span>
           </button>
         )}
       </div>
