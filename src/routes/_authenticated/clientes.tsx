@@ -37,11 +37,11 @@ function ClientesPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-2xl font-semibold">Clientes</h2>
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="text-xl sm:text-2xl font-semibold truncate">Clientes</h2>
         {isAdvogado && (
-          <button onClick={() => setShowNew(true)} className="inline-flex items-center gap-1 rounded-md bg-primary text-primary-foreground px-3 py-1.5 text-sm">
-            <Plus className="size-4" /> Novo cliente
+          <button onClick={() => setShowNew(true)} className="shrink-0 inline-flex items-center gap-1 rounded-md bg-primary text-primary-foreground px-3 py-2 text-sm font-medium">
+            <Plus className="size-4" /> <span className="hidden xs:inline">Novo</span><span className="hidden sm:inline">&nbsp;cliente</span>
           </button>
         )}
       </div>
