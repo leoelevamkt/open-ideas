@@ -36,7 +36,7 @@ function PerfilPage() {
   }
 
   return (
-    <div className="p-6 max-w-xl space-y-6">
+    <div className="space-y-6 max-w-xl">
       <h2 className="text-2xl font-semibold">Meu perfil</h2>
 
       <div className="flex items-center gap-4">

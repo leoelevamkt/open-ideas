@@ -38,12 +38,12 @@ function DocumentosPage() {
   }, [data, q, cat]);
 
   return (
-    <div className="p-6 space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-2xl font-semibold">Documentos</h2>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="text-xl sm:text-2xl font-semibold truncate">Documentos</h2>
         {isAdvogado && (
-          <button onClick={() => setShowNew(true)} className="inline-flex items-center gap-1 rounded-md bg-primary text-primary-foreground px-3 py-1.5 text-sm">
-            <Plus className="size-4" /> Novo documento
+          <button onClick={() => setShowNew(true)} className="shrink-0 inline-flex items-center gap-1 rounded-md bg-primary text-primary-foreground px-3 py-2 text-sm font-medium">
+            <Plus className="size-4" /> Novo<span className="hidden sm:inline">&nbsp;documento</span>
           </button>
         )}
       </div>

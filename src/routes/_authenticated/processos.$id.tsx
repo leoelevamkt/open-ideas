@@ -80,11 +80,11 @@ function ProcessoDetail() {
 
   const [showEvent, setShowEvent] = useState(false);
 
-  if (isLoading) return <div className="p-6 text-muted-foreground">Carregando...</div>;
-  if (!c) return <div className="p-6">Processo não encontrado.</div>;
+  if (isLoading) return <div className="text-muted-foreground">Carregando...</div>;
+  if (!c) return <div>Processo não encontrado.</div>;
 
   return (
-    <div className="p-6 space-y-6 max-w-5xl">
+    <div className="space-y-6 max-w-5xl">
       <div>
         <Link to="/processos" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
           <ArrowLeft className="size-4" /> Voltar

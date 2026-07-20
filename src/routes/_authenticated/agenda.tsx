@@ -33,12 +33,12 @@ function AgendaPage() {
   const past = (data ?? []).filter((h: any) => h.hearing_date < today);
 
   return (
-    <div className="p-6 space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-2xl font-semibold">Agenda e Audiências</h2>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="text-xl sm:text-2xl font-semibold truncate">Agenda e Audiências</h2>
         {isAdvogado && (
-          <button onClick={() => setShowNew(true)} className="inline-flex items-center gap-1 rounded-md bg-primary text-primary-foreground px-3 py-1.5 text-sm">
-            <Plus className="size-4" /> Nova audiência
+          <button onClick={() => setShowNew(true)} className="shrink-0 inline-flex items-center gap-1 rounded-md bg-primary text-primary-foreground px-3 py-2 text-sm font-medium">
+            <Plus className="size-4" /> Nova<span className="hidden sm:inline">&nbsp;audiência</span>
           </button>
         )}
       </div>

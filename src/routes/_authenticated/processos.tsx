@@ -39,15 +39,16 @@ function ProcessosPage() {
   }, [data, q, statusFilter]);
 
   return (
-    <div className="p-6 space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-2xl font-semibold">Processos</h2>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="text-xl sm:text-2xl font-semibold truncate">Processos</h2>
         {isAdvogado && (
-          <button onClick={() => setShowNew(true)} className="inline-flex items-center gap-1 rounded-md bg-primary text-primary-foreground px-3 py-1.5 text-sm">
-            <Plus className="size-4" /> Novo processo
+          <button onClick={() => setShowNew(true)} className="shrink-0 inline-flex items-center gap-1 rounded-md bg-primary text-primary-foreground px-3 py-2 text-sm font-medium">
+            <Plus className="size-4" /> Novo<span className="hidden sm:inline">&nbsp;processo</span>
           </button>
         )}
       </div>
+
 
       <div className="flex flex-wrap gap-2">
         <div className="relative flex-1 min-w-[200px]">

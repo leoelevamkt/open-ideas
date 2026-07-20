@@ -37,7 +37,7 @@ function RelatoriosPage() {
   const byArea = LEGAL_AREAS.map((a) => ({ name: a, value: (cases ?? []).filter((c: any) => c.legal_area === a).length })).filter((x) => x.value > 0);
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6">
       <h2 className="text-2xl font-semibold">Relatórios</h2>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
