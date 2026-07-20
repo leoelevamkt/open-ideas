@@ -45,11 +45,12 @@ export function BankInfoFormDialog({ bank }: { bank: BankInfo | null }) {
   )
 
   useEffect(() => {
-    if (state?.success) {
+    const s = state as { success?: boolean; error?: string } | null
+    if (s?.success) {
       toast.success("Dados bancários atualizados.")
       setOpen(false)
-    } else if (state?.error) {
-      toast.error(state.error)
+    } else if (s?.error) {
+      toast.error(s.error)
     }
   }, [state])
 
