@@ -13,10 +13,7 @@ export default defineConfig({
   },
   plugins: [
     tailwindcss(),
-    tanstackStart({
-      target: "cloudflare-module",
-      customViteReactPlugin: true,
-    }),
+    tanstackStart({ customViteReactPlugin: true }),
     viteReact(),
   ],
 });
