@@ -1,16 +1,20 @@
 import Link from "next/link"
-import { Briefcase, FileWarning, CalendarClock, Megaphone, ArrowRight } from "lucide-react"
+import { Briefcase, FileWarning, CalendarClock, Megaphone, ArrowRight, Wallet } from "lucide-react"
 import {
   clientStats,
+  financeStats,
   getNextHearing,
   lastMovement,
   listCases,
 } from "@/lib/queries"
 import { StatCard } from "@/components/stat-card"
+import { PageHero } from "@/components/page-hero"
+import { BannerCarousel } from "@/components/banner-carousel"
+import { clientBanners } from "@/lib/banners"
 import { StatusBadge } from "@/components/status-badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { formatDate, formatTime, relativeDate } from "@/lib/format"
+import { formatCurrency, formatDate, formatTime, relativeDate } from "@/lib/format"
 
 export async function ClientDashboard({ name, clientId }: { name: string; clientId: number | null }) {
   if (!clientId) {
@@ -24,18 +28,19 @@ export async function ClientDashboard({ name, clientId }: { name: string; client
   }
 
   const stats = await clientStats(clientId)
+  const finance = await financeStats(clientId)
   const nextHearing = await getNextHearing(clientId)
   const movement = await lastMovement(clientId)
   const cases = await listCases(clientId)
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h2 className="text-balance text-xl font-semibold text-foreground">
-          {`Olá, ${name.split(" ")[0]}`}
-        </h2>
-        <p className="text-sm text-muted-foreground">Acompanhe o andamento dos seus processos.</p>
-      </div>
+      <PageHero
+        title={`Olá, ${name.split(" ")[0]}`}
+        subtitle="Acompanhe o andamento dos seus processos, audiências e pagamentos."
+      />
+
+      <BannerCarousel banners={clientBanners} />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <StatCard label="Processos ativos" value={stats.activeCases} icon={Briefcase} />
@@ -48,6 +53,24 @@ export async function ClientDashboard({ name, clientId }: { name: string; client
         />
         <StatCard label="Documentos pendentes" value={stats.pendingDocs} icon={FileWarning} />
       </div>
+
+      <Link
+        href="/financeiro"
+        className="flex items-center gap-4 rounded-2xl border border-border bg-card p-4 transition-colors hover:bg-muted"
+      >
+        <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-accent/20 text-accent-foreground">
+          <Wallet className="size-6" aria-hidden="true" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium text-foreground">Financeiro</p>
+          <p className="text-xs text-muted-foreground">
+            {finance.pendingCount > 0
+              ? `${finance.pendingCount} boleto(s) em aberto · ${formatCurrency(finance.pendingTotal)}`
+              : "Nenhum boleto em aberto"}
+          </p>
+        </div>
+        <ArrowRight className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+      </Link>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card>

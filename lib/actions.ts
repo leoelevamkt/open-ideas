@@ -179,6 +179,7 @@ export async function saveHearingAction(_prev: unknown, formData: FormData) {
   const f = {
     title: String(formData.get("title") ?? "").trim(),
     case_id: formData.get("case_id") ? Number(formData.get("case_id")) : null,
+    client_id: formData.get("client_id") ? Number(formData.get("client_id")) : null,
     hearing_date: String(formData.get("hearing_date") ?? ""),
     hearing_time: String(formData.get("hearing_time") ?? ""),
     type: String(formData.get("type") ?? "Presencial"),
@@ -187,34 +188,39 @@ export async function saveHearingAction(_prev: unknown, formData: FormData) {
     notes: String(formData.get("notes") ?? ""),
   }
   if (!f.title || !f.hearing_date) return { error: "Título e data são obrigatórios." }
+
+  // Se nenhum cliente foi escolhido diretamente, herda o cliente do processo vinculado.
+  let clientId = f.client_id
+  if (!clientId && f.case_id) {
+    const c = await queryOne<{ client_id: number | null }>("SELECT client_id FROM cases WHERE id=$1", [
+      f.case_id,
+    ])
+    clientId = c?.client_id ?? null
+  }
+
   if (id) {
     await query(
-      `UPDATE hearings SET title=$1, case_id=$2, hearing_date=$3, hearing_time=$4, type=$5, location=$6, link=$7, notes=$8 WHERE id=$9`,
-      [f.title, f.case_id, f.hearing_date, f.hearing_time, f.type, f.location, f.link, f.notes, id],
+      `UPDATE hearings SET title=$1, case_id=$2, client_id=$3, hearing_date=$4, hearing_time=$5, type=$6, location=$7, link=$8, notes=$9 WHERE id=$10`,
+      [f.title, f.case_id, clientId, f.hearing_date, f.hearing_time, f.type, f.location, f.link, f.notes, id],
     )
   } else {
     await query(
-      `INSERT INTO hearings (title, case_id, hearing_date, hearing_time, type, location, link, notes)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-      [f.title, f.case_id, f.hearing_date, f.hearing_time, f.type, f.location, f.link, f.notes],
+      `INSERT INTO hearings (title, case_id, client_id, hearing_date, hearing_time, type, location, link, notes)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+      [f.title, f.case_id, clientId, f.hearing_date, f.hearing_time, f.type, f.location, f.link, f.notes],
     )
 
-    if (f.case_id) {
-      const c = await queryOne<{ client_id: number | null }>("SELECT client_id FROM cases WHERE id=$1", [
-        f.case_id,
+    if (clientId) {
+      const cu = await queryOne<{ user_id: number | null }>("SELECT user_id FROM clients WHERE id=$1", [
+        clientId,
       ])
-      if (c?.client_id) {
-        const cu = await queryOne<{ user_id: number | null }>("SELECT user_id FROM clients WHERE id=$1", [
-          c.client_id,
-        ])
-        if (cu?.user_id) {
-          await notifyUser(cu.user_id, {
-            title: "Nova audiência marcada",
-            description: f.title,
-            type: "audiencia",
-            url: "/agenda-prazos",
-          })
-        }
+      if (cu?.user_id) {
+        await notifyUser(cu.user_id, {
+          title: "Nova audiência marcada",
+          description: f.title,
+          type: "audiencia",
+          url: "/agenda-prazos",
+        })
       }
     }
   }
@@ -270,6 +276,133 @@ export async function sendMessageAction(formData: FormData) {
     url: `/mensagens?u=${user.id}`,
   })
   revalidatePath("/mensagens")
+}
+
+// ---------- Financeiro ----------
+export async function saveBankInfoAction(_prev: unknown, formData: FormData) {
+  await requireLawyer()
+  const f = {
+    bank_name: String(formData.get("bank_name") ?? ""),
+    agency: String(formData.get("agency") ?? ""),
+    account: String(formData.get("account") ?? ""),
+    account_type: String(formData.get("account_type") ?? ""),
+    holder: String(formData.get("holder") ?? ""),
+    document: String(formData.get("document") ?? ""),
+    pix_key: String(formData.get("pix_key") ?? ""),
+    pix_type: String(formData.get("pix_type") ?? ""),
+    notes: String(formData.get("notes") ?? ""),
+  }
+  await query(
+    `INSERT INTO bank_info (id, bank_name, agency, account, account_type, holder, document, pix_key, pix_type, notes, updated_at)
+     VALUES (1, $1, $2, $3, $4, $5, $6, $7, $8, $9, now())
+     ON CONFLICT (id) DO UPDATE SET
+       bank_name=EXCLUDED.bank_name, agency=EXCLUDED.agency, account=EXCLUDED.account,
+       account_type=EXCLUDED.account_type, holder=EXCLUDED.holder, document=EXCLUDED.document,
+       pix_key=EXCLUDED.pix_key, pix_type=EXCLUDED.pix_type, notes=EXCLUDED.notes, updated_at=now()`,
+    [
+      f.bank_name, f.agency, f.account, f.account_type, f.holder,
+      f.document, f.pix_key, f.pix_type, f.notes,
+    ],
+  )
+  revalidatePath("/financeiro")
+  return { success: true }
+}
+
+export async function saveInvoiceAction(_prev: unknown, formData: FormData) {
+  const lawyer = await requireLawyer()
+  const id = formData.get("id") ? Number(formData.get("id")) : null
+  const f = {
+    client_id: formData.get("client_id") ? Number(formData.get("client_id")) : null,
+    case_id: formData.get("case_id") ? Number(formData.get("case_id")) : null,
+    description: String(formData.get("description") ?? "").trim(),
+    amount: Number(String(formData.get("amount") ?? "0").replace(",", ".")) || 0,
+    due_date: String(formData.get("due_date") ?? ""),
+    barcode: String(formData.get("barcode") ?? ""),
+    payment_link: String(formData.get("payment_link") ?? ""),
+    pix_copy_paste: String(formData.get("pix_copy_paste") ?? ""),
+    notes: String(formData.get("notes") ?? ""),
+  }
+  if (!f.client_id) return { error: "Selecione o cliente." }
+  if (!f.description) return { error: "Descrição é obrigatória." }
+  if (!f.due_date) return { error: "Informe a data de vencimento." }
+
+  if (id) {
+    await query(
+      `UPDATE invoices SET client_id=$1, case_id=$2, description=$3, amount=$4, due_date=$5,
+       barcode=$6, payment_link=$7, pix_copy_paste=$8, notes=$9 WHERE id=$10`,
+      [
+        f.client_id, f.case_id, f.description, f.amount, f.due_date,
+        f.barcode, f.payment_link, f.pix_copy_paste, f.notes, id,
+      ],
+    )
+  } else {
+    await query(
+      `INSERT INTO invoices (client_id, case_id, description, amount, due_date, barcode, payment_link, pix_copy_paste, notes, created_by)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+      [
+        f.client_id, f.case_id, f.description, f.amount, f.due_date,
+        f.barcode, f.payment_link, f.pix_copy_paste, f.notes, lawyer.id,
+      ],
+    )
+    // Avisar o cliente sobre o novo boleto
+    const cu = await queryOne<{ user_id: number | null }>("SELECT user_id FROM clients WHERE id=$1", [
+      f.client_id,
+    ])
+    if (cu?.user_id) {
+      await notifyUser(cu.user_id, {
+        title: "Novo boleto disponível",
+        description: `${f.description} — vencimento em ${f.due_date.split("-").reverse().join("/")}`,
+        type: "financeiro",
+        url: "/financeiro",
+      })
+    }
+  }
+  revalidatePath("/financeiro")
+  return { success: true }
+}
+
+export async function deleteInvoiceAction(formData: FormData) {
+  await requireLawyer()
+  await query("DELETE FROM invoices WHERE id=$1", [Number(formData.get("id"))])
+  revalidatePath("/financeiro")
+}
+
+export async function setInvoiceStatusAction(formData: FormData) {
+  await requireLawyer()
+  const id = Number(formData.get("id"))
+  const status = String(formData.get("status") ?? "pendente")
+  const paidAt = status === "pago" ? "now()" : "NULL"
+  await query(`UPDATE invoices SET status=$1, paid_at=${paidAt} WHERE id=$2`, [status, id])
+  revalidatePath("/financeiro")
+}
+
+export async function markInvoicePaidAction(formData: FormData) {
+  const user = await getCurrentUser()
+  if (!user) return
+  const id = Number(formData.get("id"))
+  // O cliente só pode marcar como pago um boleto vinculado ao seu próprio cadastro.
+  const inv = await queryOne<{ client_id: number; description: string }>(
+    `SELECT i.id, i.client_id, i.description FROM invoices i
+     JOIN clients cl ON cl.id = i.client_id
+     WHERE i.id = $1 AND (cl.user_id = $2 OR $3 = 'advogado')`,
+    [id, user.id, user.role],
+  )
+  if (!inv) return
+  await query("UPDATE invoices SET status='pago', paid_at=now() WHERE id=$1", [id])
+
+  // Avisar a advogada que o cliente informou o pagamento
+  const lawyer = await queryOne<{ id: number }>(
+    "SELECT id FROM users WHERE role='advogado' ORDER BY id LIMIT 1",
+  )
+  if (lawyer && user.role === "cliente") {
+    await notifyUser(lawyer.id, {
+      title: "Pagamento informado pelo cliente",
+      description: `${user.name} marcou como pago: ${inv.description}`,
+      type: "financeiro",
+      url: "/financeiro",
+    })
+  }
+  revalidatePath("/financeiro")
 }
 
 // ---------- Notificações ----------

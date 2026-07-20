@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { LogOut, User as UserIcon } from "lucide-react"
@@ -23,6 +24,7 @@ const TITLES: Record<string, string> = {
   "/processos": "Gestão de Processos",
   "/agenda": "Agenda e Audiências",
   "/documentos": "Central de Documentos",
+  "/financeiro": "Financeiro",
   "/mensagens": "Mensagens",
   "/notificacoes": "Notificações",
   "/relatorios": "Relatórios",
@@ -49,16 +51,23 @@ export function AppHeader({
   const pathname = usePathname()
   const title = titleFromPath(pathname)
   return (
-    <header className="sticky top-0 z-10 flex h-14 items-center gap-2 border-b border-border bg-background/95 px-2 backdrop-blur safe-top">
+    <header className="sticky top-0 z-10 flex h-16 items-center gap-2 border-b border-border/70 bg-background/85 px-2 backdrop-blur-md safe-top">
       <SidebarTrigger className="size-9" />
-      <h1 className="flex-1 truncate text-center text-base font-semibold text-foreground">{title}</h1>
+      <div className="flex flex-1 items-center justify-center gap-2">
+        <span className="flex size-7 items-center justify-center overflow-hidden rounded-md ring-1 ring-gold/30">
+          <Image src="/brand-mark.png" alt="" aria-hidden="true" width={28} height={28} className="size-7 object-cover" />
+        </span>
+        <h1 className="truncate font-heading text-lg font-semibold tracking-refined text-foreground">
+          {title}
+        </h1>
+      </div>
 
       <div>
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
               <Button variant="ghost" size="icon" className="size-9 rounded-full">
-                <Avatar className="size-8">
+                <Avatar className="size-8 ring-2 ring-accent/60">
                   <AvatarFallback className="bg-primary text-primary-foreground text-xs">
                     {avatarLabel ?? name.slice(0, 2).toUpperCase()}
                   </AvatarFallback>

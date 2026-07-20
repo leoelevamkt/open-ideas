@@ -4,6 +4,8 @@ import { getClientByUserId, listCases, listClients, listDocuments } from "@/lib/
 import { DocumentsView } from "@/components/documents/documents-view"
 import { DocumentFormDialog } from "@/components/documents/document-form-dialog"
 import { DocumentUploadForm } from "@/components/documents/document-upload-form"
+import { PromoBanner } from "@/components/promo-banner"
+import { pageBanners } from "@/lib/banners"
 
 export default async function DocumentosPage() {
   const user = await getCurrentUser()
@@ -14,7 +16,8 @@ export default async function DocumentosPage() {
     const clients = await listClients("ativo")
     const cases = await listCases()
     return (
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-5">
+        <PromoBanner banner={pageBanners.documentos} priority />
         <div className="flex justify-end">
           <DocumentFormDialog clients={clients} cases={cases} />
         </div>
@@ -25,22 +28,20 @@ export default async function DocumentosPage() {
 
   const client = await getClientByUserId(user.id)
   const documents = client ? await listDocuments({ clientId: client.id }) : []
-  const cases = client ? await listCases(client.id) : []
-  
+
   return (
     <div className="flex flex-col gap-6">
+      <PromoBanner banner={pageBanners.documentos} priority />
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Documentos</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Envie documentos solicitados e visualize os compartilhados pelo escritório.</p>
+        <h1 className="font-heading text-2xl font-semibold tracking-refined">Documentos</h1>
+        <p className="mt-1.5 text-sm text-muted-foreground">
+          Envie documentos solicitados e visualize os compartilhados pelo escritório.
+        </p>
       </div>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1">
-          {client && <DocumentUploadForm clientId={client.id} />}
-        </div>
-        <div className="lg:col-span-2">
-          <DocumentsView documents={documents} role="cliente" />
-        </div>
+
+      <div className="flex flex-col gap-6">
+        {client && <DocumentUploadForm clientId={client.id} />}
+        <DocumentsView documents={documents} role="cliente" />
       </div>
     </div>
   )

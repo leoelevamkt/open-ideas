@@ -6,12 +6,14 @@ import { CalendarClock, AlertCircle, CheckCircle2 } from "lucide-react"
 
 interface Hearing {
   id: number
-  case_id: number
+  case_id: number | null
+  title?: string
   hearing_date: string
   hearing_time?: string
   location?: string
   observations?: string
   notes?: string
+  client_name?: string | null
   case?: {
     number?: string
     title?: string
@@ -76,7 +78,9 @@ export function DeadlineTimeline({ hearings, role }: DeadlineTimelineProps) {
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
-                    <CardTitle className="text-lg">Processo {hearing.case?.number ?? "—"}</CardTitle>
+                    <CardTitle className="text-lg">
+                      {hearing.title || (hearing.case?.number ? `Processo ${hearing.case.number}` : "Audiência")}
+                    </CardTitle>
                     <Badge
                       variant={
                         status === "passed"
@@ -89,14 +93,17 @@ export function DeadlineTimeline({ hearings, role }: DeadlineTimelineProps) {
                       {label}
                     </Badge>
                   </div>
-                  <CardDescription className="text-base font-medium text-foreground">
-                    {hearing.case?.title ?? ""}
-                  </CardDescription>
-                  {role === "advogado" && hearing.case?.client?.full_name && (
-                    <CardDescription className="mt-1">
-                      Cliente: {hearing.case.client.full_name}
+                  {hearing.case?.title ? (
+                    <CardDescription className="text-base font-medium text-foreground">
+                      {hearing.case.title}
                     </CardDescription>
-                  )}
+                  ) : null}
+                  {role === "advogado" &&
+                    (hearing.client_name || hearing.case?.client?.full_name) && (
+                      <CardDescription className="mt-1 font-medium text-gold-strong">
+                        Cliente: {hearing.client_name || hearing.case?.client?.full_name}
+                      </CardDescription>
+                    )}
                 </div>
                 {status === "passed" && <CheckCircle2 className="h-6 w-6 text-muted-foreground" />}
                 {status === "urgent" && <AlertCircle className="h-6 w-6 text-destructive" />}

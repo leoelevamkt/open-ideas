@@ -1,6 +1,6 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
+import { Geist, Geist_Mono, Playfair_Display } from 'next/font/google'
 import { Toaster } from '@/components/ui/sonner'
 import { SplashScreen } from '@/components/splash-screen'
 import './globals.css'
@@ -10,12 +10,17 @@ const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
   subsets: ['latin'],
 })
+// Serifada elegante para títulos — reforça a sofisticação do escritório de advocacia
+const playfair = Playfair_Display({
+  variable: '--font-playfair',
+  subsets: ['latin'],
+  weight: ['500', '600', '700'],
+})
 
 export const metadata: Metadata = {
   title: 'Guimarães & Guedes Advocacia | Portal do Cliente',
   description:
     'Portal do escritório Guimarães & Guedes Advocacia: processos, clientes, audiências, documentos e comunicação entre advogado e cliente.',
-  generator: 'v0.app',
 }
 
 export const viewport: Viewport = {
@@ -32,7 +37,10 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="pt-BR" className={`${geistSans.variable} ${geistMono.variable} bg-background`}>
+    <html
+      lang="pt-BR"
+      className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} bg-background`}
+    >
       <body className="font-sans antialiased">
         <SplashScreen />
         <div className="app-ambient flex min-h-[100dvh] justify-center">

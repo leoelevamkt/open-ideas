@@ -57,6 +57,7 @@ export type Hearing = {
   id: number
   title: string
   case_id: number | null
+  client_id: number | null
   hearing_date: string
   hearing_time: string | null
   type: "Presencial" | "Online" | "Híbrida"
@@ -96,6 +97,41 @@ export type Notification = {
   read: number
   created_at: string
 }
+
+export type BankInfo = {
+  id: number
+  bank_name: string | null
+  agency: string | null
+  account: string | null
+  account_type: string | null
+  holder: string | null
+  document: string | null
+  pix_key: string | null
+  pix_type: string | null
+  notes: string | null
+  updated_at: string
+}
+
+export type Invoice = {
+  id: number
+  client_id: number
+  case_id: number | null
+  description: string
+  amount: number | string
+  due_date: string
+  status: "pendente" | "pago" | "vencido" | "cancelado"
+  barcode: string | null
+  payment_link: string | null
+  pix_copy_paste: string | null
+  notes: string | null
+  paid_at: string | null
+  created_by: number | null
+  created_at: string
+}
+
+export const INVOICE_STATUSES = ["pendente", "pago", "cancelado"] as const
+
+export const PIX_KEY_TYPES = ["CPF", "CNPJ", "E-mail", "Telefone", "Aleatória"] as const
 
 export const CASE_STATUSES = [
   "Em Análise",

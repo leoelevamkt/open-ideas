@@ -8,6 +8,7 @@ import {
   FolderKanban,
   CalendarClock,
   FileText,
+  Wallet,
   MessageSquare,
   Bell,
   BarChart3,
@@ -64,6 +65,7 @@ export function AppSidebar({
     { href: "/agenda", label: "Agenda e Audiências", icon: CalendarClock, roles: ["advogado", "cliente"] },
     { href: "/agenda-prazos", label: "Agenda de Prazos", icon: CalendarClock, roles: ["advogado", "cliente"] },
     { href: "/documentos", label: "Documentos", icon: FileText, roles: ["advogado", "cliente"] },
+    { href: "/financeiro", label: "Financeiro", icon: Wallet, roles: ["advogado", "cliente"] },
     {
       href: "/mensagens",
       label: "Mensagens",

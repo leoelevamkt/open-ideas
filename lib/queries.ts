@@ -1,9 +1,11 @@
 import { query, queryOne } from "@/lib/db"
 import type {
+  BankInfo,
   Case,
   Client,
   DocumentItem,
   Hearing,
+  Invoice,
   Message,
   Notification,
   TimelineEvent,
@@ -58,33 +60,46 @@ export async function listTimeline(caseId: number): Promise<TimelineEvent[]> {
 // ---------- Audiências ----------
 export async function listHearings(
   clientId?: number,
-): Promise<Array<Hearing & { case_title: string | null }>> {
+): Promise<Array<Hearing & { case_title: string | null; client_name: string | null }>> {
+  // Cliente associado diretamente à audiência tem prioridade; senão, usa o cliente do processo.
   const base = `
-    SELECT h.*, c.title as case_title, c.client_id as client_id
-    FROM hearings h LEFT JOIN cases c ON c.id = h.case_id`
+    SELECT h.*,
+           c.title as case_title,
+           COALESCE(h.client_id, c.client_id) as client_id,
+           cl.full_name as client_name
+    FROM hearings h
+    LEFT JOIN cases c ON c.id = h.case_id
+    LEFT JOIN clients cl ON cl.id = COALESCE(h.client_id, c.client_id)`
   if (clientId) {
-    return query<Hearing & { case_title: string | null }>(
-      `${base} WHERE c.client_id = $1 ORDER BY h.hearing_date, h.hearing_time`,
+    return query<Hearing & { case_title: string | null; client_name: string | null }>(
+      `${base} WHERE COALESCE(h.client_id, c.client_id) = $1 ORDER BY h.hearing_date, h.hearing_time`,
       [clientId],
     )
   }
-  return query<Hearing & { case_title: string | null }>(`${base} ORDER BY h.hearing_date, h.hearing_time`)
+  return query<Hearing & { case_title: string | null; client_name: string | null }>(
+    `${base} ORDER BY h.hearing_date, h.hearing_time`,
+  )
 }
 
 export async function getNextHearing(
   clientId?: number,
-): Promise<(Hearing & { case_title: string | null }) | null> {
+): Promise<(Hearing & { case_title: string | null; client_name: string | null }) | null> {
   const base = `
-    SELECT h.*, c.title as case_title
-    FROM hearings h LEFT JOIN cases c ON c.id = h.case_id
+    SELECT h.*,
+           c.title as case_title,
+           COALESCE(h.client_id, c.client_id) as client_id,
+           cl.full_name as client_name
+    FROM hearings h
+    LEFT JOIN cases c ON c.id = h.case_id
+    LEFT JOIN clients cl ON cl.id = COALESCE(h.client_id, c.client_id)
     WHERE h.hearing_date >= $1`
   if (clientId) {
-    return queryOne<Hearing & { case_title: string | null }>(
-      `${base} AND c.client_id = $2 ORDER BY h.hearing_date, h.hearing_time LIMIT 1`,
+    return queryOne<Hearing & { case_title: string | null; client_name: string | null }>(
+      `${base} AND COALESCE(h.client_id, c.client_id) = $2 ORDER BY h.hearing_date, h.hearing_time LIMIT 1`,
       [today(), clientId],
     )
   }
-  return queryOne<Hearing & { case_title: string | null }>(
+  return queryOne<Hearing & { case_title: string | null; client_name: string | null }>(
     `${base} ORDER BY h.hearing_date, h.hearing_time LIMIT 1`,
     [today()],
   )
@@ -214,11 +229,12 @@ export async function getUpcomingHearings(): Promise<
   Array<Hearing & { case: Case & { client: Client } }>
 > {
   const rows = await query<any>(
-    `SELECT h.*, c.id as case_id, c.number, c.title, c.client_id,
+    `SELECT h.*, c.id as case_id, c.number, c.title,
+            COALESCE(h.client_id, c.client_id) as client_id,
             cl.id as client_id_2, cl.full_name as client_name, cl.email, cl.phone, cl.cpf, cl.rg, cl.birth_date, cl.address, cl.status, cl.user_id, cl.whatsapp, cl.notes, cl.created_at
      FROM hearings h
-     JOIN cases c ON c.id = h.case_id
-     JOIN clients cl ON cl.id = c.client_id
+     LEFT JOIN cases c ON c.id = h.case_id
+     LEFT JOIN clients cl ON cl.id = COALESCE(h.client_id, c.client_id)
      WHERE h.hearing_date >= $1
      ORDER BY h.hearing_date ASC`,
     [today()],
@@ -257,8 +273,8 @@ export async function getClientHearings(
   const base = `
     SELECT h.*, c.number as case_number, c.title as case_title
     FROM hearings h
-    JOIN cases c ON c.id = h.case_id
-    WHERE c.client_id = $1`
+    LEFT JOIN cases c ON c.id = h.case_id
+    WHERE COALESCE(h.client_id, c.client_id) = $1`
   const rows =
     status === "proximashearing"
       ? await query<any>(`${base} AND h.hearing_date >= $2 ORDER BY h.hearing_date ASC`, [clientId, today()])
@@ -314,6 +330,52 @@ export async function hearingsThisMonth(): Promise<Array<Hearing & { case_title:
      WHERE h.hearing_date BETWEEN $1 AND $2 ORDER BY h.hearing_date`,
     [start, end],
   )
+}
+
+// ---------- Financeiro ----------
+export async function getBankInfo(): Promise<BankInfo | null> {
+  return queryOne<BankInfo>("SELECT * FROM bank_info WHERE id = 1")
+}
+
+export async function listInvoices(
+  clientId?: number,
+): Promise<Array<Invoice & { client_name: string | null; case_title: string | null }>> {
+  const base = `
+    SELECT i.*, cl.full_name as client_name, c.title as case_title
+    FROM invoices i
+    LEFT JOIN clients cl ON cl.id = i.client_id
+    LEFT JOIN cases c ON c.id = i.case_id`
+  if (clientId) {
+    return query<Invoice & { client_name: string | null; case_title: string | null }>(
+      `${base} WHERE i.client_id = $1 ORDER BY i.due_date DESC, i.id DESC`,
+      [clientId],
+    )
+  }
+  return query<Invoice & { client_name: string | null; case_title: string | null }>(
+    `${base} ORDER BY i.due_date DESC, i.id DESC`,
+  )
+}
+
+export async function getInvoice(id: number): Promise<Invoice | null> {
+  return queryOne<Invoice>("SELECT * FROM invoices WHERE id = $1", [id])
+}
+
+export async function financeStats(clientId?: number) {
+  const scope = clientId ? "WHERE client_id = $1 AND" : "WHERE"
+  const params = clientId ? [clientId] : []
+  const pending = await queryOne<{ c: number | string; total: number | string }>(
+    `SELECT COUNT(*) c, COALESCE(SUM(amount),0) total FROM invoices ${scope} status = 'pendente'`,
+    params,
+  )
+  const paid = await queryOne<{ total: number | string }>(
+    `SELECT COALESCE(SUM(amount),0) total FROM invoices ${scope} status = 'pago'`,
+    params,
+  )
+  return {
+    pendingCount: num(pending?.c),
+    pendingTotal: num(pending?.total),
+    paidTotal: num(paid?.total),
+  }
 }
 
 export async function getOtherPartyId(userId: number): Promise<number | null> {

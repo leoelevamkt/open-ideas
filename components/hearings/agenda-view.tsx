@@ -1,25 +1,36 @@
 "use client"
 
-import { MapPin, Video, Clock, Link2, Trash2 } from "lucide-react"
-import type { Case, Hearing, Role } from "@/lib/types"
+import { MapPin, Video, Clock, Link2, Trash2, User } from "lucide-react"
+import type { Case, Client, Hearing, Role } from "@/lib/types"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { HearingFormDialog } from "@/components/hearings/hearing-form-dialog"
 import { deleteHearingAction } from "@/lib/actions"
-import { formatDate, formatTime } from "@/lib/format"
+import { formatDate, formatTime, toDateInputValue } from "@/lib/format"
 
-type HearingItem = Hearing & { case_title: string | null }
+type HearingItem = Hearing & { case_title: string | null; client_name: string | null }
 
-function HearingCard({ h, cases, role }: { h: HearingItem; cases: Case[]; role: Role }) {
+function HearingCard({
+  h,
+  cases,
+  clients,
+  role,
+}: {
+  h: HearingItem
+  cases: Case[]
+  clients: Client[]
+  role: Role
+}) {
+  const dateStr = toDateInputValue(h.hearing_date)
   return (
     <Card>
       <CardContent className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex gap-4">
           <div className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-lg bg-primary/10 text-primary">
-            <span className="text-lg font-semibold leading-none">{h.hearing_date.slice(8, 10)}</span>
+            <span className="text-lg font-semibold leading-none">{dateStr.slice(8, 10)}</span>
             <span className="text-xs uppercase">
-              {new Date(h.hearing_date + "T00:00:00").toLocaleDateString("pt-BR", { month: "short" })}
+              {new Date(dateStr + "T00:00:00").toLocaleDateString("pt-BR", { month: "short" })}
             </span>
           </div>
           <div className="min-w-0">
@@ -30,6 +41,11 @@ function HearingCard({ h, cases, role }: { h: HearingItem; cases: Case[]; role: 
                 {h.type}
               </Badge>
             </div>
+            {h.client_name ? (
+              <p className="mt-0.5 flex items-center gap-1 text-sm font-medium text-gold-strong">
+                <User className="h-3.5 w-3.5" /> {h.client_name}
+              </p>
+            ) : null}
             {h.case_title ? <p className="mt-0.5 text-sm text-muted-foreground">{h.case_title}</p> : null}
             <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
@@ -50,7 +66,7 @@ function HearingCard({ h, cases, role }: { h: HearingItem; cases: Case[]; role: 
         </div>
         {role === "advogado" ? (
           <div className="flex shrink-0 items-center gap-2">
-            <HearingFormDialog hearing={h} cases={cases} />
+            <HearingFormDialog hearing={h} cases={cases} clients={clients} />
             <form action={deleteHearingAction}>
               <input type="hidden" name="id" value={h.id} />
               <Button type="submit" variant="ghost" size="icon" aria-label="Excluir audiência">
@@ -67,21 +83,23 @@ function HearingCard({ h, cases, role }: { h: HearingItem; cases: Case[]; role: 
 export function AgendaView({
   hearings,
   cases,
+  clients = [],
   role,
 }: {
   hearings: HearingItem[]
   cases: Case[]
+  clients?: Client[]
   role: Role
 }) {
   const today = new Date().toISOString().slice(0, 10)
-  const upcoming = hearings.filter((h) => h.hearing_date >= today)
-  const past = hearings.filter((h) => h.hearing_date < today)
+  const upcoming = hearings.filter((h) => toDateInputValue(h.hearing_date) >= today)
+  const past = hearings.filter((h) => toDateInputValue(h.hearing_date) < today)
 
   return (
     <div className="flex flex-col gap-6">
       {role === "advogado" ? (
         <div className="flex justify-end">
-          <HearingFormDialog cases={cases} />
+          <HearingFormDialog cases={cases} clients={clients} />
         </div>
       ) : null}
 
@@ -94,7 +112,7 @@ export function AgendaView({
             </CardContent>
           </Card>
         ) : (
-          upcoming.map((h) => <HearingCard key={h.id} h={h} cases={cases} role={role} />)
+          upcoming.map((h) => <HearingCard key={h.id} h={h} cases={cases} clients={clients} role={role} />)
         )}
       </section>
 
@@ -103,7 +121,7 @@ export function AgendaView({
           <h3 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">Realizadas</h3>
           <div className="flex flex-col gap-3 opacity-70">
             {past.map((h) => (
-              <HearingCard key={h.id} h={h} cases={cases} role={role} />
+              <HearingCard key={h.id} h={h} cases={cases} clients={clients} role={role} />
             ))}
           </div>
         </section>

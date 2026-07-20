@@ -4,9 +4,10 @@ import { useState, useActionState, useEffect } from "react"
 import { useFormStatus } from "react-dom"
 import { toast } from "sonner"
 import { Plus } from "lucide-react"
-import type { Case, Hearing } from "@/lib/types"
+import type { Case, Client, Hearing } from "@/lib/types"
 import { HEARING_TYPES } from "@/lib/types"
 import { saveHearingAction } from "@/lib/actions"
+import { toDateInputValue } from "@/lib/format"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -37,7 +38,15 @@ function SubmitButton() {
   )
 }
 
-export function HearingFormDialog({ hearing, cases }: { hearing?: Hearing; cases: Case[] }) {
+export function HearingFormDialog({
+  hearing,
+  cases,
+  clients,
+}: {
+  hearing?: Hearing
+  cases: Case[]
+  clients: Client[]
+}) {
   const [open, setOpen] = useState(false)
   const [state, formAction] = useActionState(saveHearingAction, null)
 
@@ -77,10 +86,28 @@ export function HearingFormDialog({ hearing, cases }: { hearing?: Hearing; cases
             <Input id="title" name="title" defaultValue={hearing?.title} required className="mt-1.5" />
           </div>
           <div>
+            <Label htmlFor="client_id">Cliente *</Label>
+            <Select name="client_id" defaultValue={hearing?.client_id ? String(hearing.client_id) : undefined}>
+              <SelectTrigger id="client_id" className="mt-1.5">
+                <SelectValue placeholder="Selecione o cliente" />
+              </SelectTrigger>
+              <SelectContent>
+                {clients.map((c) => (
+                  <SelectItem key={c.id} value={String(c.id)}>
+                    {c.full_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="mt-1 text-xs text-muted-foreground">
+              O cliente será notificado sobre a audiência.
+            </p>
+          </div>
+          <div>
             <Label htmlFor="case_id">Processo</Label>
             <Select name="case_id" defaultValue={hearing?.case_id ? String(hearing.case_id) : undefined}>
               <SelectTrigger id="case_id" className="mt-1.5">
-                <SelectValue placeholder="Selecione" />
+                <SelectValue placeholder="Selecione (opcional)" />
               </SelectTrigger>
               <SelectContent>
                 {cases.map((c) => (
@@ -94,7 +121,7 @@ export function HearingFormDialog({ hearing, cases }: { hearing?: Hearing; cases
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="hearing_date">Data *</Label>
-              <Input id="hearing_date" name="hearing_date" type="date" defaultValue={hearing?.hearing_date} required className="mt-1.5" />
+              <Input id="hearing_date" name="hearing_date" type="date" defaultValue={hearing ? toDateInputValue(hearing.hearing_date) : ""} required className="mt-1.5" />
             </div>
             <div>
               <Label htmlFor="hearing_time">Horário</Label>

@@ -1,34 +1,39 @@
 import Link from "next/link"
-import { Users, Briefcase, CalendarClock, FileWarning, ArrowRight } from "lucide-react"
+import { Users, Briefcase, CalendarClock, Wallet, ArrowRight } from "lucide-react"
 import {
+  financeStats,
   lawyerStats,
   listHearings,
   recentMovements,
 } from "@/lib/queries"
 import { StatCard } from "@/components/stat-card"
+import { PageHero } from "@/components/page-hero"
+import { BannerCarousel } from "@/components/banner-carousel"
+import { lawyerBanners } from "@/lib/banners"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { formatDate, formatTime, relativeDate } from "@/lib/format"
+import { formatCurrency, formatDate, formatTime, relativeDate } from "@/lib/format"
 
 export async function LawyerDashboard({ name }: { name: string }) {
   const stats = await lawyerStats()
+  const finance = await financeStats()
   const upcoming = (await listHearings()).slice(0, 4)
   const movements = await recentMovements(5)
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h2 className="text-balance text-xl font-semibold text-foreground">
-          {`Bem-vinda, ${name.split(" ").slice(0, 2).join(" ")}`}
-        </h2>
-        <p className="text-sm text-muted-foreground">Visão geral do seu escritório.</p>
-      </div>
+      <PageHero
+        title={`Bem-vinda, ${name.split(" ").slice(0, 2).join(" ")}`}
+        subtitle="Visão geral do seu escritório: clientes, processos, audiências e financeiro."
+      />
+
+      <BannerCarousel banners={lawyerBanners} />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Clientes ativos" value={stats.clients} icon={Users} />
         <StatCard label="Processos" value={stats.cases} icon={Briefcase} />
         <StatCard label="Audiências (7 dias)" value={stats.hearingsWeek} icon={CalendarClock} accent />
-        <StatCard label="Documentos pendentes" value={stats.pendingDocs} icon={FileWarning} />
+        <StatCard label="A receber" value={formatCurrency(finance.pendingTotal)} icon={Wallet} />
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">

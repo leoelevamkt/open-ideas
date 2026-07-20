@@ -16,19 +16,23 @@ export function StatCard({
   accent?: boolean
 }) {
   return (
-    <Card>
-      <CardContent className="flex items-center gap-4 p-5">
+    <Card className="gold-topline overflow-hidden">
+      <CardContent className="flex items-center gap-3.5 p-4">
         <div
           className={cn(
-            "flex h-12 w-12 shrink-0 items-center justify-center rounded-lg",
-            accent ? "bg-accent/20 text-accent-foreground" : "bg-primary/10 text-primary",
+            "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl",
+            accent
+              ? "bg-gold/25 text-gold-strong ring-1 ring-gold/30"
+              : "bg-primary/5 text-primary ring-1 ring-primary/10",
           )}
         >
-          <Icon className="h-6 w-6" />
+          <Icon className="h-5 w-5" />
         </div>
         <div className="min-w-0">
-          <p className="text-sm text-muted-foreground">{label}</p>
-          <p className="text-2xl font-semibold leading-tight text-foreground">{value}</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
+          <p className="font-heading text-xl font-semibold leading-tight tracking-refined text-foreground">
+            {value}
+          </p>
           {hint ? <p className="truncate text-xs text-muted-foreground">{hint}</p> : null}
         </div>
       </CardContent>

@@ -12,7 +12,7 @@
   --breakpoint-lg: 9999px;
   --breakpoint-xl: 9999px;
   --breakpoint-2xl: 9999px;
-  --font-heading: var(--font-sans);
+  --font-heading: var(--font-playfair), 'Georgia', serif;
   --font-sans: var(--font-geist-sans), 'Geist Fallback';
   --font-mono: var(--font-geist-mono), 'Geist Mono Fallback';
   --color-sidebar-ring: var(--sidebar-ring);
@@ -34,6 +34,8 @@
   --color-destructive: var(--destructive);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
+  --color-gold: var(--gold);
+  --color-gold-strong: var(--gold-strong);
   --color-muted-foreground: var(--muted-foreground);
   --color-muted: var(--muted);
   --color-secondary-foreground: var(--secondary-foreground);
@@ -70,26 +72,29 @@
   --secondary-foreground: oklch(0.18 0.008 70);
   --muted: oklch(0.95 0.006 80);
   --muted-foreground: oklch(0.5 0.012 70);
-  --accent: oklch(0.7 0.1 80);
+  /* Dourado da marca, mais rico e saturado, usado como cor de destaque */
+  --accent: oklch(0.74 0.13 85);
   --accent-foreground: oklch(0.18 0.008 70);
+  --gold: oklch(0.74 0.13 85);
+  --gold-strong: oklch(0.62 0.12 78);
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.9 0.008 80);
   --input: oklch(0.9 0.008 80);
-  --ring: oklch(0.7 0.1 80);
+  --ring: oklch(0.74 0.13 85);
   --chart-1: oklch(0.18 0.008 70);
-  --chart-2: oklch(0.7 0.1 80);
-  --chart-3: oklch(0.78 0.08 85);
+  --chart-2: oklch(0.74 0.13 85);
+  --chart-3: oklch(0.8 0.1 88);
   --chart-4: oklch(0.45 0.04 75);
   --chart-5: oklch(0.6 0.06 60);
-  --radius: 0.5rem;
+  --radius: 0.75rem;
   --sidebar: oklch(0.16 0.006 70);
   --sidebar-foreground: oklch(0.92 0.008 80);
-  --sidebar-primary: oklch(0.7 0.1 80);
+  --sidebar-primary: oklch(0.74 0.13 85);
   --sidebar-primary-foreground: oklch(0.16 0.006 70);
   --sidebar-accent: oklch(0.24 0.008 70);
   --sidebar-accent-foreground: oklch(0.98 0.004 80);
   --sidebar-border: oklch(0.3 0.008 70);
-  --sidebar-ring: oklch(0.7 0.1 80);
+  --sidebar-ring: oklch(0.74 0.13 85);
 }
 
 .dark {
@@ -127,42 +132,9 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not(.light) {
-    color-scheme: dark;
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
-  }
-}
+/* O portal usa exclusivamente a paleta clara da marca (preto, dourado e branco).
+   Não há tema escuro: a identidade dourada deve aparecer em qualquer dispositivo,
+   inclusive quando o sistema do usuário está em modo escuro. */
 
 @layer base {
   * {
@@ -177,6 +149,20 @@
   }
   html {
     @apply font-sans;
+  }
+  /* Toques mais responsivos (remove o atraso de 300ms) em elementos interativos */
+  button,
+  a,
+  [role='button'],
+  [role='tab'],
+  label {
+    touch-action: manipulation;
+  }
+  /* Evita o zoom automático do iOS ao focar campos: fonte mínima de 16px */
+  input,
+  textarea,
+  select {
+    font-size: 16px;
   }
 }
 
@@ -227,4 +213,42 @@
   .safe-top {
     padding-top: env(safe-area-inset-top);
   }
+  /* Fio dourado no topo de um cartão/seção para reforçar a identidade da marca */
+  .gold-topline {
+    position: relative;
+  }
+  .gold-topline::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 3px;
+    border-radius: 9999px;
+    background: linear-gradient(90deg, var(--gold-strong), var(--gold));
+  }
+  /* Sobreposição escura para dar legibilidade ao texto sobre imagens dos banners */
+  .banner-scrim {
+    background: linear-gradient(
+      90deg,
+      oklch(0.12 0.006 70 / 0.95) 0%,
+      oklch(0.12 0.006 70 / 0.82) 45%,
+      oklch(0.12 0.006 70 / 0.35) 100%
+    );
+  }
+  /* Título com leve espaçamento entre letras para um ar mais editorial */
+  .tracking-refined {
+    letter-spacing: -0.01em;
+  }
+}
+
+/* Rolagem horizontal por "snap" para o carrossel de banners (estilo app) */
+.snap-x-app {
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.snap-x-app::-webkit-scrollbar {
+  display: none;
+}
+.snap-item {
+  scroll-snap-align: center;
 }

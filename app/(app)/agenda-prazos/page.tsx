@@ -2,6 +2,8 @@ import { redirect } from "next/navigation"
 import { getCurrentUser } from "@/lib/auth"
 import { getClientByUserId, getUpcomingHearings, getClientHearings } from "@/lib/queries"
 import { DeadlineTimeline } from "@/components/deadline-timeline"
+import { PromoBanner } from "@/components/promo-banner"
+import { pageBanners } from "@/lib/banners"
 
 export default async function AgendaPrazosPage() {
   const user = await getCurrentUser()
@@ -19,10 +21,11 @@ export default async function AgendaPrazosPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
+      <PromoBanner banner={pageBanners.agenda} priority />
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Agenda de Prazos</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
+        <h1 className="font-heading text-2xl font-semibold tracking-refined">Agenda de Prazos</h1>
+        <p className="mt-1.5 text-sm text-muted-foreground">
           {user.role === "advogado"
             ? "Visualize todas as audiências e prazos importantes."
             : "Acompanhe suas audiências e prazos processuais."}
