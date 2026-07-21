@@ -25,6 +25,10 @@ function FinanceiroPage() {
   const [clientId, setClientId] = useState<string | null>(null);
   const qc = useQueryClient();
 
+  if (user && user.role === "estagiario") {
+    return <p className="py-8 text-center text-sm text-muted-foreground">Acesso ao módulo financeiro restrito à administração.</p>;
+  }
+
   useEffect(() => {
     if (!user || isLawyer) return;
     getClientByUserId(user.id).then(c => setClientId(c?.id ?? null));
