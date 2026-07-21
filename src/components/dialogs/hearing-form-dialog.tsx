@@ -16,7 +16,7 @@ export function HearingFormDialog({ hearing }: { hearing?: any }) {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<any>({});
   const qc = useQueryClient();
-  const { data: clients = [] } = useQuery({ queryKey: ["clients", "ativo"], queryFn: () => listClients("ativo"), enabled: open });
+  const { data: clients = [] } = useQuery({ queryKey: ["clients", "all"], queryFn: () => listClients(), enabled: open });
   const { data: cases = [] } = useQuery({ queryKey: ["cases"], queryFn: () => listCases(), enabled: open });
 
   useEffect(() => { if (open) setForm(hearing ?? { type: "Presencial" }); }, [open, hearing]);

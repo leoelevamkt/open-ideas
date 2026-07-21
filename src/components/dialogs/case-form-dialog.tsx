@@ -17,7 +17,7 @@ export function CaseFormDialog({ caseItem }: { caseItem?: Case }) {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<any>({});
   const qc = useQueryClient();
-  const { data: clients = [] } = useQuery({ queryKey: ["clients", "ativo"], queryFn: () => listClients("ativo"), enabled: open });
+  const { data: clients = [] } = useQuery({ queryKey: ["clients", "all"], queryFn: () => listClients(), enabled: open });
 
   useEffect(() => { if (open) setForm(caseItem ?? { status: "Em Análise" }); }, [open, caseItem]);
 
