@@ -1,8 +1,9 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, Users, FolderKanban, CalendarClock, FileText,
-  Wallet, MessageSquare, Bell, BarChart3, User, LogOut,
+  Wallet, MessageSquare, Bell, BarChart3, User, LogOut, ShieldCheck,
 } from "lucide-react";
+
 import type { Role } from "@/lib/types";
 import { BrandLogo } from "@/components/brand-logo";
 import { supabase } from "@/integrations/supabase/client";
