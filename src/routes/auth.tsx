@@ -14,10 +14,8 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -30,23 +28,10 @@ function AuthPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      if (mode === "login") {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        toast.success("Bem-vindo(a)!");
-        navigate({ to: "/dashboard" });
-      } else {
-        const { data, error } = await supabase.auth.signUp({
-          email, password,
-          options: { emailRedirectTo: `${window.location.origin}/dashboard`, data: { name } },
-        });
-        if (error) throw error;
-        if (data.user) {
-          await supabase.from("profiles").upsert({ id: data.user.id, name, email });
-        }
-        toast.success("Conta criada!");
-        navigate({ to: "/dashboard" });
-      }
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      toast.success("Bem-vindo(a)!");
+      navigate({ to: "/dashboard" });
     } catch (err: any) {
       toast.error(err.message ?? "Falha na autenticação");
     } finally {
@@ -71,35 +56,25 @@ function AuthPage() {
       <section className="flex flex-1 flex-col justify-center px-5 py-8">
         <Card className="border-border shadow-sm">
           <CardHeader>
-            <CardTitle className="text-2xl">
-              {mode === "login" ? "Acessar plataforma" : "Criar conta"}
-            </CardTitle>
-            <CardDescription>
-              {mode === "login" ? "Entre com suas credenciais para continuar." : "Cadastre-se para acessar o portal."}
-            </CardDescription>
+            <CardTitle className="text-2xl">Acessar plataforma</CardTitle>
+            <CardDescription>Entre com suas credenciais para continuar.</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={submit} className="flex flex-col gap-4">
-              {mode === "signup" && (
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="name">Nome completo</Label>
-                  <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
-                </div>
-              )}
               <div className="flex flex-col gap-2">
                 <Label htmlFor="email">E-mail</Label>
                 <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
               </div>
               <div className="flex flex-col gap-2">
                 <Label htmlFor="password">Senha</Label>
-                <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete={mode === "login" ? "current-password" : "new-password"} />
+                <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password" />
               </div>
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Aguarde..." : mode === "login" ? "Entrar" : "Criar conta"}
+                {loading ? "Aguarde..." : "Entrar"}
               </Button>
-              <button type="button" className="text-sm text-muted-foreground hover:text-foreground" onClick={() => setMode(mode === "login" ? "signup" : "login")}>
-                {mode === "login" ? "Não tem conta? Cadastre-se" : "Já tem conta? Entrar"}
-              </button>
+              <p className="text-center text-xs text-muted-foreground">
+                O cadastro é feito apenas pelo administrador.
+              </p>
             </form>
           </CardContent>
         </Card>
