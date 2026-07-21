@@ -67,25 +67,22 @@ function AdminUsersPage() {
 
   return (
     <div className="space-y-4">
-      <PageHero
-        icon={Shield}
-        title="Gestão de Usuários"
-        description="Crie, edite e remova usuários administradores e clientes do portal."
-        actions={
-          <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setEditing(null); }}>
-            <DialogTrigger asChild>
-              <Button onClick={() => setEditing(null)} className="gap-2">
-                <UserPlus className="size-4" /> Novo usuário
-              </Button>
-            </DialogTrigger>
-            <UserFormDialog
-              editing={editing}
-              onClose={() => { setOpen(false); setEditing(null); }}
-              onSaved={() => qc.invalidateQueries({ queryKey: ["admin-users"] })}
-            />
-          </Dialog>
-        }
-      />
+      <PageHero title="Gestão de Usuários" subtitle="Crie, edite e remova usuários administradores e clientes do portal." />
+      <div className="flex justify-end">
+        <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setEditing(null); }}>
+          <DialogTrigger asChild>
+            <Button onClick={() => setEditing(null)} className="gap-2">
+              <UserPlus className="size-4" /> Novo usuário
+            </Button>
+          </DialogTrigger>
+          <UserFormDialog
+            editing={editing}
+            onClose={() => { setOpen(false); setEditing(null); }}
+            onSaved={() => qc.invalidateQueries({ queryKey: ["admin-users"] })}
+          />
+        </Dialog>
+      </div>
+
 
       <div className="space-y-3">
         {isLoading ? (
