@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { ExternalLink, Loader2, FileText, Download } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { getDocumentSignedUrl } from "@/lib/queries";
 
 type Props = {
