@@ -82,7 +82,7 @@ function DocumentosPage() {
               </div>
               <Badge variant={d.status === "disponivel" ? "default" : "secondary"}>{d.status}</Badge>
               {d.file_path && (
-                <Button variant="ghost" size="icon" onClick={() => onOpen(d.file_path)} className="size-8" aria-label="Abrir">
+                <Button variant="ghost" size="icon" onClick={() => onOpen(d)} className="size-8" aria-label="Abrir">
                   <ExternalLink className="size-4" />
                 </Button>
               )}
