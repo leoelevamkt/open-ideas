@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Plus, Pencil } from "lucide-react";
+import { Plus, Pencil, Upload } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { saveDocument, listClients, listCases } from "@/lib/queries";
+import { saveDocument, listClients, listCases, uploadDocumentFile } from "@/lib/queries";
 import { DOCUMENT_CATEGORIES } from "@/lib/constants";
 import type { DocumentItem } from "@/lib/types";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 const NONE = "__none__";
 
+function humanSize(bytes: number) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 export function DocumentFormDialog({ document, defaults, trigger }: {
   document?: DocumentItem;
   defaults?: { client_id?: string | null; case_id?: string | null };
@@ -21,12 +27,15 @@ export function DocumentFormDialog({ document, defaults, trigger }: {
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<any>({ category: "Outros", status: "disponivel" });
+  const [file, setFile] = useState<File | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
   const qc = useQueryClient();
   const { data: clients = [] } = useQuery({ queryKey: ["clients", "ativo"], queryFn: () => listClients("ativo"), enabled: open });
   const { data: cases = [] } = useQuery({ queryKey: ["cases"], queryFn: () => listCases(), enabled: open });
 
   useEffect(() => {
     if (!open) return;
+    setFile(null);
     if (document) setForm({ ...document });
     else setForm({ category: "Outros", status: "disponivel", ...defaults });
   }, [open, document, defaults]);
@@ -36,8 +45,8 @@ export function DocumentFormDialog({ document, defaults, trigger }: {
     const fd = new FormData(e.currentTarget);
     const p: any = {
       id: document?.id,
-      name: String(fd.get("name") ?? ""),
-      size_label: (fd.get("size_label") as string) || null,
+      name: String(fd.get("name") ?? "") || file?.name || "",
+      size_label: (fd.get("size_label") as string) || (file ? humanSize(file.size) : null),
       category: form.category ?? "Outros",
       status: form.status ?? "disponivel",
       client_id: form.client_id && form.client_id !== NONE ? form.client_id : null,
@@ -45,6 +54,10 @@ export function DocumentFormDialog({ document, defaults, trigger }: {
     };
     if (!p.id) delete p.id;
     try {
+      if (file) {
+        const uploaded = await uploadDocumentFile(file);
+        Object.assign(p, uploaded);
+      }
       await saveDocument(p);
       toast.success(document ? "Documento atualizado." : "Documento adicionado.");
       qc.invalidateQueries({ queryKey: ["documents"] });
@@ -52,6 +65,7 @@ export function DocumentFormDialog({ document, defaults, trigger }: {
       setOpen(false);
     } catch (err: any) { toast.error(err.message); } finally { setSaving(false); }
   }
+
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -66,7 +80,24 @@ export function DocumentFormDialog({ document, defaults, trigger }: {
           <DialogDescription>{document ? "Atualize as informações do documento." : "Registre um novo documento no acervo."}</DialogDescription>
         </DialogHeader>
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
-          <div><Label>Nome do arquivo *</Label><Input name="name" defaultValue={document?.name ?? ""} placeholder="ex: Contrato.pdf" required className="mt-1.5" /></div>
+          <div>
+            <Label>Arquivo {document ? "(deixe em branco para manter)" : ""}</Label>
+            <div className="mt-1.5 flex items-center gap-2">
+              <Button type="button" variant="outline" size="sm" onClick={() => fileRef.current?.click()}>
+                <Upload className="mr-1 size-4" /> {file ? "Trocar arquivo" : "Selecionar arquivo"}
+              </Button>
+              <span className="truncate text-xs text-muted-foreground">
+                {file ? `${file.name} · ${humanSize(file.size)}` : (document?.file_path ? "Arquivo já anexado" : "Nenhum arquivo selecionado")}
+              </span>
+              <input
+                ref={fileRef}
+                type="file"
+                className="hidden"
+                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              />
+            </div>
+          </div>
+          <div><Label>Nome do documento *</Label><Input name="name" defaultValue={document?.name ?? ""} placeholder="ex: Contrato.pdf" required className="mt-1.5" /></div>
           <div><Label>Tamanho (opcional)</Label><Input name="size_label" defaultValue={document?.size_label ?? ""} placeholder="ex: 1,2 MB" className="mt-1.5" /></div>
           <div>
             <Label>Categoria</Label>

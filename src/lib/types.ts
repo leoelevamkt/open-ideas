@@ -76,6 +76,9 @@ export type DocumentItem = {
   case_id: string | null;
   status: "disponivel" | "pendente";
   size_label: string | null;
+  file_path: string | null;
+  mime_type: string | null;
+  size_bytes: number | null;
   created_at: string;
 };
 

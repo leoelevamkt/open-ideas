@@ -178,8 +178,11 @@ export type Database = {
           category: string
           client_id: string | null
           created_at: string
+          file_path: string | null
           id: string
+          mime_type: string | null
           name: string
+          size_bytes: number | null
           size_label: string | null
           status: string
           uploaded_by: string | null
@@ -189,8 +192,11 @@ export type Database = {
           category?: string
           client_id?: string | null
           created_at?: string
+          file_path?: string | null
           id?: string
+          mime_type?: string | null
           name: string
+          size_bytes?: number | null
           size_label?: string | null
           status?: string
           uploaded_by?: string | null
@@ -200,8 +206,11 @@ export type Database = {
           category?: string
           client_id?: string | null
           created_at?: string
+          file_path?: string | null
           id?: string
+          mime_type?: string | null
           name?: string
+          size_bytes?: number | null
           size_label?: string | null
           status?: string
           uploaded_by?: string | null
