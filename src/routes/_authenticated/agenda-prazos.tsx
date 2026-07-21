@@ -34,8 +34,8 @@ function typeColor(t?: string | null) {
 }
 
 function PrazosPage() {
-  const { user } = useAuth();
-  const isLawyer = user?.role === "advogado";
+  const { user, isStaff } = useAuth();
+  const isLawyer = isStaff;
   const [clientId, setClientId] = useState<string | null>(null);
   const [filter, setFilter] = useState<(typeof TYPE_FILTERS)[number]>("todos");
 

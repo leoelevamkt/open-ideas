@@ -14,9 +14,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 export const Route = createFileRoute("/_authenticated/dashboard")({ component: Dashboard });
 
 function Dashboard() {
-  const { user } = useAuth();
+  const { user, isStaff } = useAuth();
   const [clientId, setClientId] = useState<string | null>(null);
-  const isLawyer = user?.role === "advogado";
+  const isLawyer = isStaff;
 
   useEffect(() => {
     if (!user || isLawyer) return;
