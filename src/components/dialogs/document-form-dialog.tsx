@@ -80,7 +80,24 @@ export function DocumentFormDialog({ document, defaults, trigger }: {
           <DialogDescription>{document ? "Atualize as informações do documento." : "Registre um novo documento no acervo."}</DialogDescription>
         </DialogHeader>
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
-          <div><Label>Nome do arquivo *</Label><Input name="name" defaultValue={document?.name ?? ""} placeholder="ex: Contrato.pdf" required className="mt-1.5" /></div>
+          <div>
+            <Label>Arquivo {document ? "(deixe em branco para manter)" : ""}</Label>
+            <div className="mt-1.5 flex items-center gap-2">
+              <Button type="button" variant="outline" size="sm" onClick={() => fileRef.current?.click()}>
+                <Upload className="mr-1 size-4" /> {file ? "Trocar arquivo" : "Selecionar arquivo"}
+              </Button>
+              <span className="truncate text-xs text-muted-foreground">
+                {file ? `${file.name} · ${humanSize(file.size)}` : (document?.file_path ? "Arquivo já anexado" : "Nenhum arquivo selecionado")}
+              </span>
+              <input
+                ref={fileRef}
+                type="file"
+                className="hidden"
+                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              />
+            </div>
+          </div>
+          <div><Label>Nome do documento *</Label><Input name="name" defaultValue={document?.name ?? ""} placeholder="ex: Contrato.pdf" required className="mt-1.5" /></div>
           <div><Label>Tamanho (opcional)</Label><Input name="size_label" defaultValue={document?.size_label ?? ""} placeholder="ex: 1,2 MB" className="mt-1.5" /></div>
           <div>
             <Label>Categoria</Label>
