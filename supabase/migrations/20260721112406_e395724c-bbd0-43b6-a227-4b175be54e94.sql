@@ -1,0 +1,1 @@
+UPDATE public.profiles SET name='Johnson Monte Guedes', avatar_label='JG' WHERE email='monteguedes65@gmail.com';
