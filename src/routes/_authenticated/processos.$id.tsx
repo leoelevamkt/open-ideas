@@ -84,9 +84,25 @@ function ProcessoDetailPage() {
         <CardContent className="flex flex-col gap-2">
           {docs.length === 0 && <p className="text-sm text-muted-foreground">Sem documentos.</p>}
           {docs.map((d) => (
-            <div key={d.id} className="flex items-center justify-between rounded-md border border-border/60 p-3 text-sm">
+            <div key={d.id} className="flex items-center justify-between gap-2 rounded-md border border-border/60 p-3 text-sm">
               <span className="truncate">{d.name}</span>
-              <Badge variant={d.status === "disponivel" ? "default" : "secondary"}>{d.status}</Badge>
+              <div className="flex items-center gap-2">
+                <Badge variant={d.status === "disponivel" ? "default" : "secondary"}>{d.status}</Badge>
+                {d.file_path && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={async () => {
+                      try {
+                        const url = await getDocumentSignedUrl(d.file_path!);
+                        window.open(url, "_blank", "noopener,noreferrer");
+                      } catch (e: any) { toast.error(e.message); }
+                    }}
+                  >
+                    Abrir
+                  </Button>
+                )}
+              </div>
             </div>
           ))}
         </CardContent>
