@@ -1,11 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { FileText, Search, Trash2 } from "lucide-react";
+import { FileText, Search, Trash2, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { PageHero } from "@/components/page-hero";
 import { DocumentFormDialog } from "@/components/dialogs/document-form-dialog";
-import { listDocuments, deleteDocument, getClientByUserId } from "@/lib/queries";
+import { listDocuments, deleteDocument, getClientByUserId, getDocumentSignedUrl } from "@/lib/queries";
 import { useAuth } from "@/lib/auth-context";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
