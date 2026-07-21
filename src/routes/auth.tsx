@@ -101,15 +101,6 @@ function AuthPage() {
                 {mode === "login" ? "Não tem conta? Cadastre-se" : "Já tem conta? Entrar"}
               </button>
             </form>
-
-            <div className="mt-6 rounded-md border border-border bg-muted/50 p-4 text-sm">
-              <p className="mb-2 font-medium text-foreground">Contas de demonstração</p>
-              <ul className="space-y-1 text-muted-foreground">
-                <li><span className="font-medium text-foreground">Advogado:</span> admin@teste.com</li>
-                <li><span className="font-medium text-foreground">Cliente:</span> cliente@teste.com</li>
-                <li className="pt-1">Senha: <span className="font-mono text-foreground">Teste@123</span></li>
-              </ul>
-            </div>
           </CardContent>
         </Card>
       </section>
