@@ -25,22 +25,26 @@ function FinanceiroPage() {
   const [clientId, setClientId] = useState<string | null>(null);
   const qc = useQueryClient();
 
-  if (user && user.role === "estagiario") {
-    return <p className="py-8 text-center text-sm text-muted-foreground">Acesso ao módulo financeiro restrito à administração.</p>;
-  }
-
   useEffect(() => {
     if (!user || isLawyer) return;
     getClientByUserId(user.id).then(c => setClientId(c?.id ?? null));
   }, [user, isLawyer]);
 
-  const { data: bank } = useQuery({ queryKey: ["bank"], queryFn: getBankInfo });
+  const { data: bank } = useQuery({ queryKey: ["bank"], queryFn: getBankInfo, enabled: user?.role !== "estagiario" });
   const { data: invoices = [] } = useQuery({
-    enabled: !!user,
+    enabled: !!user && user.role !== "estagiario",
     queryKey: ["invoices", isLawyer, clientId],
     queryFn: () => listInvoices(isLawyer ? undefined : clientId ?? undefined),
   });
   const { data: stats } = useQuery({ enabled: isLawyer, queryKey: ["finance-stats"], queryFn: financeStats });
+
+  if (user?.role === "estagiario") {
+    return (
+      <div className="py-12 text-center">
+        <p className="text-sm text-muted-foreground">Acesso ao módulo financeiro restrito à administração.</p>
+      </div>
+    );
+  }
 
   async function markPaid(id: string) {
     try { await setInvoiceStatus(id, "pago"); toast.success("Marcado como pago."); qc.invalidateQueries({ queryKey: ["invoices"] }); qc.invalidateQueries({ queryKey: ["finance-stats"] }); }
