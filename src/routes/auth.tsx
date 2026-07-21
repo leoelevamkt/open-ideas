@@ -15,8 +15,8 @@ export const Route = createFileRoute("/auth")({
 function AuthPage() {
   const navigate = useNavigate();
   const [mode, setMode] = useState<"login" | "signup">("login");
-  const [email, setEmail] = useState("admin@teste.com");
-  const [password, setPassword] = useState("Teste@123");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -101,15 +101,6 @@ function AuthPage() {
                 {mode === "login" ? "Não tem conta? Cadastre-se" : "Já tem conta? Entrar"}
               </button>
             </form>
-
-            <div className="mt-6 rounded-md border border-border bg-muted/50 p-4 text-sm">
-              <p className="mb-2 font-medium text-foreground">Contas de demonstração</p>
-              <ul className="space-y-1 text-muted-foreground">
-                <li><span className="font-medium text-foreground">Advogado:</span> admin@teste.com</li>
-                <li><span className="font-medium text-foreground">Cliente:</span> cliente@teste.com</li>
-                <li className="pt-1">Senha: <span className="font-mono text-foreground">Teste@123</span></li>
-              </ul>
-            </div>
           </CardContent>
         </Card>
       </section>
