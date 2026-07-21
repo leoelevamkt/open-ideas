@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedAdminUsuariosRouteImport } from './routes/_authenticated/admin-usuarios'
 import { Route as AuthenticatedAgendaRouteImport } from './routes/_authenticated/agenda'
 import { Route as AuthenticatedAgendaPrazosRouteImport } from './routes/_authenticated/agenda-prazos'
 import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticated/clientes'
@@ -39,6 +40,12 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminUsuariosRoute =
+  AuthenticatedAdminUsuariosRouteImport.update({
+    id: '/admin-usuarios',
+    path: '/admin-usuarios',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAgendaRoute = AuthenticatedAgendaRouteImport.update({
   id: '/agenda',
   path: '/agenda',
@@ -106,6 +113,7 @@ const AuthenticatedProcessosIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/admin-usuarios': typeof AuthenticatedAdminUsuariosRoute
   '/agenda': typeof AuthenticatedAgendaRoute
   '/agenda-prazos': typeof AuthenticatedAgendaPrazosRoute
   '/clientes': typeof AuthenticatedClientesRoute
@@ -122,6 +130,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/admin-usuarios': typeof AuthenticatedAdminUsuariosRoute
   '/agenda': typeof AuthenticatedAgendaRoute
   '/agenda-prazos': typeof AuthenticatedAgendaPrazosRoute
   '/clientes': typeof AuthenticatedClientesRoute
@@ -140,6 +149,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/admin-usuarios': typeof AuthenticatedAdminUsuariosRoute
   '/_authenticated/agenda': typeof AuthenticatedAgendaRoute
   '/_authenticated/agenda-prazos': typeof AuthenticatedAgendaPrazosRoute
   '/_authenticated/clientes': typeof AuthenticatedClientesRoute
@@ -158,6 +168,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/admin-usuarios'
     | '/agenda'
     | '/agenda-prazos'
     | '/clientes'
@@ -174,6 +185,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/admin-usuarios'
     | '/agenda'
     | '/agenda-prazos'
     | '/clientes'
@@ -191,6 +203,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/admin-usuarios'
     | '/_authenticated/agenda'
     | '/_authenticated/agenda-prazos'
     | '/_authenticated/clientes'
@@ -233,6 +246,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/admin-usuarios': {
+      id: '/_authenticated/admin-usuarios'
+      path: '/admin-usuarios'
+      fullPath: '/admin-usuarios'
+      preLoaderRoute: typeof AuthenticatedAdminUsuariosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/agenda': {
       id: '/_authenticated/agenda'
@@ -336,6 +356,7 @@ const AuthenticatedProcessosRouteWithChildren =
   )
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminUsuariosRoute: typeof AuthenticatedAdminUsuariosRoute
   AuthenticatedAgendaRoute: typeof AuthenticatedAgendaRoute
   AuthenticatedAgendaPrazosRoute: typeof AuthenticatedAgendaPrazosRoute
   AuthenticatedClientesRoute: typeof AuthenticatedClientesRoute
@@ -350,6 +371,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminUsuariosRoute: AuthenticatedAdminUsuariosRoute,
   AuthenticatedAgendaRoute: AuthenticatedAgendaRoute,
   AuthenticatedAgendaPrazosRoute: AuthenticatedAgendaPrazosRoute,
   AuthenticatedClientesRoute: AuthenticatedClientesRoute,
