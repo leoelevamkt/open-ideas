@@ -79,7 +79,7 @@ function ProcessoDetailPage() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-base">Documentos</CardTitle>
-          {isLawyer && <DocumentFormDialog caseId={id} />}
+          {isLawyer && <DocumentFormDialog />}
         </CardHeader>
         <CardContent className="flex flex-col gap-2">
           {docs.length === 0 && <p className="text-sm text-muted-foreground">Sem documentos.</p>}
