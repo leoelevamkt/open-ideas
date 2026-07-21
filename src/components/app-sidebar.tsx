@@ -36,7 +36,9 @@ export function AppSidebar({
     { href: "/mensagens", label: "Mensagens", icon: MessageSquare, roles: ["advogado","cliente"], badge: unreadMessages },
     { href: "/notificacoes", label: "Notificações", icon: Bell, roles: ["advogado","cliente"], badge: unreadNotifications },
     { href: "/relatorios", label: "Relatórios", icon: BarChart3, roles: ["advogado","cliente"] },
+    { href: "/admin-usuarios", label: "Gestão de Usuários", icon: ShieldCheck, roles: ["advogado"] },
   ];
+
   const visible = items.filter((i) => i.roles.includes(role));
   const initials = name.slice(0, 2).toUpperCase();
 
