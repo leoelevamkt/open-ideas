@@ -215,6 +215,25 @@ export async function deleteHearing(id: string) {
   if (error) throw error;
 }
 
+export async function uploadDocumentFile(file: File) {
+  const { data: s } = await supabase.auth.getSession();
+  const uid = s.session?.user.id ?? "anon";
+  const safe = file.name.replace(/[^\w.\-]+/g, "_");
+  const path = `${uid}/${Date.now()}-${safe}`;
+  const { error } = await supabase.storage.from("documents").upload(path, file, {
+    contentType: file.type || undefined,
+    upsert: false,
+  });
+  if (error) throw error;
+  return { file_path: path, mime_type: file.type || null, size_bytes: file.size };
+}
+
+export async function getDocumentSignedUrl(filePath: string) {
+  const { data, error } = await supabase.storage.from("documents").createSignedUrl(filePath, 60 * 10);
+  if (error) throw error;
+  return data.signedUrl;
+}
+
 export async function saveDocument(payload: any) {
   const { id, ...rest } = payload;
   if (id) {
@@ -228,6 +247,10 @@ export async function saveDocument(payload: any) {
   if (error) throw error;
 }
 export async function deleteDocument(id: string) {
+  const { data: doc } = await supabase.from("documents").select("file_path").eq("id", id).maybeSingle();
+  if (doc?.file_path) {
+    await supabase.storage.from("documents").remove([doc.file_path]);
+  }
   const { error } = await supabase.from("documents").delete().eq("id", id);
   if (error) throw error;
 }
