@@ -75,16 +75,21 @@ export function DocumentPreviewDialog({ open, onOpenChange, filePath, name }: Pr
         <DialogFooter className="flex-row justify-end gap-2 sm:justify-end">
           {url && (
             <>
-              <Button asChild variant="outline" size="sm">
-                <a href={url} download={name ?? undefined}>
-                  <Download className="mr-2 size-4" /> Baixar
-                </a>
-              </Button>
-              <Button asChild size="sm">
-                <a href={url} target="_blank" rel="noopener noreferrer">
-                  <ExternalLink className="mr-2 size-4" /> Abrir em nova aba
-                </a>
-              </Button>
+              <a
+                href={url}
+                download={name ?? undefined}
+                className="inline-flex h-9 items-center rounded-md border border-input bg-background px-3 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
+              >
+                <Download className="mr-2 size-4" /> Baixar
+              </a>
+              <a
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex h-9 items-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+              >
+                <ExternalLink className="mr-2 size-4" /> Abrir em nova aba
+              </a>
             </>
           )}
         </DialogFooter>
