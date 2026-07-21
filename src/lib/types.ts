@@ -1,4 +1,4 @@
-export type Role = "advogado" | "cliente";
+export type Role = "advogado" | "cliente" | "estagiario";
 
 export type User = {
   id: string;

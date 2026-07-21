@@ -26,21 +26,22 @@ export function AppSidebar({
   const signOut = async () => { await supabase.auth.signOut(); window.location.href = "/auth"; };
 
   const items: NavItem[] = [
-    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, roles: ["advogado","cliente"] },
-    { href: "/clientes", label: "Clientes", icon: Users, roles: ["advogado"] },
-    { href: "/processos", label: "Processos", icon: FolderKanban, roles: ["advogado","cliente"] },
-    { href: "/agenda", label: "Agenda e Audiências", icon: CalendarClock, roles: ["advogado","cliente"] },
-    { href: "/agenda-prazos", label: "Agenda de Prazos", icon: CalendarClock, roles: ["advogado","cliente"] },
-    { href: "/documentos", label: "Documentos", icon: FileText, roles: ["advogado","cliente"] },
+    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, roles: ["advogado","cliente","estagiario"] },
+    { href: "/clientes", label: "Clientes", icon: Users, roles: ["advogado","estagiario"] },
+    { href: "/processos", label: "Processos", icon: FolderKanban, roles: ["advogado","cliente","estagiario"] },
+    { href: "/agenda", label: "Agenda e Audiências", icon: CalendarClock, roles: ["advogado","cliente","estagiario"] },
+    { href: "/agenda-prazos", label: "Agenda de Prazos", icon: CalendarClock, roles: ["advogado","cliente","estagiario"] },
+    { href: "/documentos", label: "Documentos", icon: FileText, roles: ["advogado","cliente","estagiario"] },
     { href: "/financeiro", label: "Financeiro", icon: Wallet, roles: ["advogado","cliente"] },
-    { href: "/mensagens", label: "Mensagens", icon: MessageSquare, roles: ["advogado","cliente"], badge: unreadMessages },
-    { href: "/notificacoes", label: "Notificações", icon: Bell, roles: ["advogado","cliente"], badge: unreadNotifications },
-    { href: "/relatorios", label: "Relatórios", icon: BarChart3, roles: ["advogado","cliente"] },
+    { href: "/mensagens", label: "Mensagens", icon: MessageSquare, roles: ["advogado","cliente","estagiario"], badge: unreadMessages },
+    { href: "/notificacoes", label: "Notificações", icon: Bell, roles: ["advogado","cliente","estagiario"], badge: unreadNotifications },
+    { href: "/relatorios", label: "Relatórios", icon: BarChart3, roles: ["advogado","cliente","estagiario"] },
     { href: "/admin-usuarios", label: "Gestão de Usuários", icon: ShieldCheck, roles: ["advogado"] },
   ];
 
   const visible = items.filter((i) => i.roles.includes(role));
   const initials = name.slice(0, 2).toUpperCase();
+  const roleLabel = role === "advogado" ? "Advogado (Admin)" : role === "estagiario" ? "Advogado/Estagiário" : "Cliente";
 
   return (
     <Sidebar>
@@ -52,13 +53,13 @@ export function AppSidebar({
           </Avatar>
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold text-sidebar-foreground">{name}</p>
-            <span className="text-xs capitalize text-sidebar-foreground/60">{role}</span>
+            <span className="text-xs text-sidebar-foreground/60">{roleLabel}</span>
           </div>
         </div>
       </SidebarHeader>
       <SidebarContent className="px-2">
         <SidebarGroup>
-          <SidebarGroupLabel>{role === "advogado" ? "Escritório" : "Meu Espaço"}</SidebarGroupLabel>
+          <SidebarGroupLabel>{role === "cliente" ? "Meu Espaço" : "Escritório"}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="gap-1.5">
               {visible.map((item) => {

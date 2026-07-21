@@ -13,8 +13,8 @@ import { formatDate, relativeDate } from "@/lib/format";
 export const Route = createFileRoute("/_authenticated/agenda")({ component: AgendaPage });
 
 function AgendaPage() {
-  const { user } = useAuth();
-  const isLawyer = user?.role === "advogado";
+  const { user, isStaff, canEdit } = useAuth();
+  const isLawyer = isStaff;
   const [clientId, setClientId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -35,7 +35,7 @@ function AgendaPage() {
   return (
     <div className="flex flex-col gap-4">
       <PageHero title="Agenda e audiências" subtitle="Compromissos organizados por data." />
-      {isLawyer && <div className="flex justify-end"><HearingFormDialog /></div>}
+      {canEdit && <div className="flex justify-end"><HearingFormDialog /></div>}
 
       <section className="flex flex-col gap-2">
         <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Próximas</h2>

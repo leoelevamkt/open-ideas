@@ -24,8 +24,8 @@ export const Route = createFileRoute("/_authenticated/processos/$id")({
 
 function ProcessoDetailPage() {
   const { id } = useParams({ from: "/_authenticated/processos/$id" });
-  const { user } = useAuth();
-  const isLawyer = user?.role === "advogado";
+  const { canEdit } = useAuth();
+  const isLawyer = canEdit;
   const { data: c } = useQuery({ queryKey: ["case", id], queryFn: () => getCase(id) });
   const { data: timeline = [] } = useQuery({ queryKey: ["timeline", id], queryFn: () => listTimeline(id) });
   const { data: docs = [] } = useQuery({ queryKey: ["docs", id], queryFn: () => listDocuments({ caseId: id }) });

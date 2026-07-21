@@ -14,9 +14,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 export const Route = createFileRoute("/_authenticated/dashboard")({ component: Dashboard });
 
 function Dashboard() {
-  const { user } = useAuth();
+  const { user, isStaff } = useAuth();
   const [clientId, setClientId] = useState<string | null>(null);
-  const isLawyer = user?.role === "advogado";
+  const isLawyer = isStaff;
 
   useEffect(() => {
     if (!user || isLawyer) return;
@@ -32,7 +32,7 @@ function Dashboard() {
   const { data: timeline = [] } = useQuery({ enabled: !!user && isLawyer, queryKey: ["recent-t"], queryFn: () => listRecentTimeline(5) });
 
   const firstName = user?.name?.split(" ")[0] ?? "";
-  const greeting = isLawyer ? `Bem-vindo, Dr. ${firstName}` : `Olá, ${firstName}`;
+  const greeting = user?.role === "advogado" ? `Bem-vindo, Dr. ${firstName}` : `Olá, ${firstName}`;
 
   return (
     <div className="flex flex-col gap-5">

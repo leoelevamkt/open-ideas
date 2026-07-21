@@ -22,7 +22,7 @@ const clientItems: NavItem[] = [
 export function BottomNav({ role }: { role: string }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { setOpenMobile } = useSidebar();
-  const items = role === "advogado" ? lawyerItems : clientItems;
+  const items = role === "cliente" ? clientItems : lawyerItems;
 
   return (
     <div className="pointer-events-none fixed bottom-0 left-1/2 z-40 w-full max-w-[480px] -translate-x-1/2 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))]">

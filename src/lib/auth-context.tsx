@@ -5,6 +5,9 @@ import type { User } from "@/lib/types";
 type AuthCtx = {
   user: User | null;
   loading: boolean;
+  isStaff: boolean;
+  canEdit: boolean;
+  canSeeFinance: boolean;
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
   signUp: (email: string, password: string, name: string) => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
@@ -68,7 +71,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
   const signOut = async () => { await supabase.auth.signOut(); };
 
-  return <Ctx.Provider value={{ user, loading, signIn, signUp, signOut }}>{children}</Ctx.Provider>;
+  const isStaff = user?.role === "advogado" || user?.role === "estagiario";
+  const canEdit = user?.role === "advogado";
+  const canSeeFinance = user?.role === "advogado" || user?.role === "cliente";
+
+  return <Ctx.Provider value={{ user, loading, isStaff, canEdit, canSeeFinance, signIn, signUp, signOut }}>{children}</Ctx.Provider>;
 }
 
 export function useAuth() {

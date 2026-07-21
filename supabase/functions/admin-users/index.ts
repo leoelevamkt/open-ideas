@@ -6,10 +6,12 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+type AppRole = "advogado" | "cliente" | "estagiario";
+
 type Action =
   | { action: "list" }
-  | { action: "create"; email: string; password: string; name: string; role: "advogado" | "cliente" }
-  | { action: "update"; user_id: string; name?: string; email?: string; password?: string; role?: "advogado" | "cliente" }
+  | { action: "create"; email: string; password: string; name: string; role: AppRole }
+  | { action: "update"; user_id: string; name?: string; email?: string; password?: string; role?: AppRole }
   | { action: "delete"; user_id: string };
 
 Deno.serve(async (req) => {

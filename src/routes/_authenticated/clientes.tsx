@@ -15,8 +15,8 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/_authenticated/clientes")({ component: ClientesPage });
 
 function ClientesPage() {
-  const { user } = useAuth();
-  const isLawyer = user?.role === "advogado";
+  const { user, isStaff, canEdit } = useAuth();
+  const isLawyer = isStaff;
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState<"ativo" | "arquivado">("ativo");
   const qc = useQueryClient();
@@ -36,7 +36,7 @@ function ClientesPage() {
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input placeholder="Buscar por nome ou CPF…" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
         </div>
-        {isLawyer && <ClientFormDialog />}
+        {canEdit && <ClientFormDialog />}
       </div>
       {isLawyer && (
         <div className="flex gap-1.5 rounded-lg bg-muted p-1">
@@ -68,7 +68,7 @@ function ClientesPage() {
                 </div>
                 <Badge variant={c.status === "ativo" ? "default" : "secondary"}>{c.status}</Badge>
               </div>
-              {isLawyer && (
+              {canEdit && (
                 <div className="mt-3 flex justify-end gap-2">
                   <Button variant="outline" size="sm" onClick={() => toggleArchive(c.id)}><Archive className="mr-1 size-3.5" /> {tab === "ativo" ? "Arquivar" : "Reativar"}</Button>
                   <ClientFormDialog client={c} />

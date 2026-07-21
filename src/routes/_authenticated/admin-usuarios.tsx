@@ -17,13 +17,21 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 
+type AdminRole = "advogado" | "cliente" | "estagiario";
+
 type AdminUser = {
   id: string;
   email: string;
   name: string;
-  role: "advogado" | "cliente";
+  role: AdminRole;
   created_at: string;
   last_sign_in_at: string | null;
+};
+
+const ROLE_LABELS: Record<AdminRole, string> = {
+  advogado: "Advogado (Admin)",
+  estagiario: "Advogado/Estagiário",
+  cliente: "Cliente",
 };
 
 export const Route = createFileRoute("/_authenticated/admin-usuarios")({
@@ -95,8 +103,8 @@ function AdminUsersPage() {
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <p className="truncate font-semibold">{u.name}</p>
-                  <Badge variant={u.role === "advogado" ? "default" : "secondary"} className="capitalize">
-                    {u.role}
+                  <Badge variant={u.role === "advogado" ? "default" : u.role === "estagiario" ? "outline" : "secondary"}>
+                    {ROLE_LABELS[u.role] ?? u.role}
                   </Badge>
                 </div>
                 <p className="truncate text-xs text-muted-foreground">{u.email}</p>
@@ -129,7 +137,7 @@ function UserFormDialog({
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<"advogado" | "cliente">("cliente");
+  const [role, setRole] = useState<AdminRole>("cliente");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -183,10 +191,11 @@ function UserFormDialog({
         </div>
         <div className="space-y-1.5">
           <Label>Tipo de acesso</Label>
-          <Select value={role} onValueChange={(v) => setRole(v as any)}>
+          <Select value={role} onValueChange={(v) => setRole(v as AdminRole)}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="advogado">Advogado (Admin)</SelectItem>
+              <SelectItem value="estagiario">Advogado/Estagiário (somente leitura, sem financeiro)</SelectItem>
               <SelectItem value="cliente">Cliente</SelectItem>
             </SelectContent>
           </Select>
