@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Plus, Pencil } from "lucide-react";
+import { Plus, Pencil, Upload } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { saveDocument, listClients, listCases } from "@/lib/queries";
+import { saveDocument, listClients, listCases, uploadDocumentFile } from "@/lib/queries";
 import { DOCUMENT_CATEGORIES } from "@/lib/constants";
 import type { DocumentItem } from "@/lib/types";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 const NONE = "__none__";
 
+function humanSize(bytes: number) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 export function DocumentFormDialog({ document, defaults, trigger }: {
   document?: DocumentItem;
   defaults?: { client_id?: string | null; case_id?: string | null };
@@ -21,12 +27,15 @@ export function DocumentFormDialog({ document, defaults, trigger }: {
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<any>({ category: "Outros", status: "disponivel" });
+  const [file, setFile] = useState<File | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
   const qc = useQueryClient();
   const { data: clients = [] } = useQuery({ queryKey: ["clients", "ativo"], queryFn: () => listClients("ativo"), enabled: open });
   const { data: cases = [] } = useQuery({ queryKey: ["cases"], queryFn: () => listCases(), enabled: open });
 
   useEffect(() => {
     if (!open) return;
+    setFile(null);
     if (document) setForm({ ...document });
     else setForm({ category: "Outros", status: "disponivel", ...defaults });
   }, [open, document, defaults]);
@@ -36,8 +45,8 @@ export function DocumentFormDialog({ document, defaults, trigger }: {
     const fd = new FormData(e.currentTarget);
     const p: any = {
       id: document?.id,
-      name: String(fd.get("name") ?? ""),
-      size_label: (fd.get("size_label") as string) || null,
+      name: String(fd.get("name") ?? "") || file?.name || "",
+      size_label: (fd.get("size_label") as string) || (file ? humanSize(file.size) : null),
       category: form.category ?? "Outros",
       status: form.status ?? "disponivel",
       client_id: form.client_id && form.client_id !== NONE ? form.client_id : null,
@@ -45,6 +54,10 @@ export function DocumentFormDialog({ document, defaults, trigger }: {
     };
     if (!p.id) delete p.id;
     try {
+      if (file) {
+        const uploaded = await uploadDocumentFile(file);
+        Object.assign(p, uploaded);
+      }
       await saveDocument(p);
       toast.success(document ? "Documento atualizado." : "Documento adicionado.");
       qc.invalidateQueries({ queryKey: ["documents"] });
@@ -52,6 +65,7 @@ export function DocumentFormDialog({ document, defaults, trigger }: {
       setOpen(false);
     } catch (err: any) { toast.error(err.message); } finally { setSaving(false); }
   }
+
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
