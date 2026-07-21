@@ -29,6 +29,7 @@ function ProcessoDetailPage() {
   const { data: c } = useQuery({ queryKey: ["case", id], queryFn: () => getCase(id) });
   const { data: timeline = [] } = useQuery({ queryKey: ["timeline", id], queryFn: () => listTimeline(id) });
   const { data: docs = [] } = useQuery({ queryKey: ["docs", id], queryFn: () => listDocuments({ caseId: id }) });
+  const [preview, setPreview] = useState<{ path: string; name: string } | null>(null);
 
   if (!c) return <p className="text-sm text-muted-foreground">Carregando…</p>;
 
