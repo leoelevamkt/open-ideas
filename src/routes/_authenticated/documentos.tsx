@@ -97,7 +97,6 @@ function DocumentosPage() {
         ))}
         {filtered.length === 0 && <p className="py-8 text-center text-sm text-muted-foreground">Nenhum documento.</p>}
       </div>
-      </div>
       <DocumentPreviewDialog
         open={!!preview}
         onOpenChange={(o) => !o && setPreview(null)}
