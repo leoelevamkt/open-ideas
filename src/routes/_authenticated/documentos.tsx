@@ -62,12 +62,15 @@ function DocumentosPage() {
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium">{d.name}</p>
                 <p className="truncate text-xs text-muted-foreground">
-                  {d.category}{d.client_name ? ` · ${d.client_name}` : ""} · {formatDate(d.created_at)}
+                  {d.category}{d.client_name ? ` · ${d.client_name}` : ""}{d.size_label ? ` · ${d.size_label}` : ""} · {formatDate(d.created_at)}
                 </p>
               </div>
               <Badge variant={d.status === "disponivel" ? "default" : "secondary"}>{d.status}</Badge>
               {isLawyer && (
-                <Button variant="ghost" size="icon" onClick={() => onDelete(d.id)} className="size-8 text-destructive"><Trash2 className="size-4" /></Button>
+                <div className="flex items-center gap-1">
+                  <DocumentFormDialog document={d} />
+                  <Button variant="ghost" size="icon" onClick={() => onDelete(d.id)} className="size-8 text-destructive"><Trash2 className="size-4" /></Button>
+                </div>
               )}
             </CardContent>
           </Card>
