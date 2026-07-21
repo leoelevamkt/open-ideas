@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ArrowLeft, Plus } from "lucide-react";
-import { getCase, listTimeline, listDocuments, addTimelineEvent } from "@/lib/queries";
+import { getCase, listTimeline, listDocuments, addTimelineEvent, getDocumentSignedUrl } from "@/lib/queries";
 import { useAuth } from "@/lib/auth-context";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
