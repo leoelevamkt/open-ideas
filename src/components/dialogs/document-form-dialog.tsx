@@ -136,7 +136,11 @@ export function DocumentFormDialog({ document, defaults, trigger }: {
           <div>
             <Label>Processo (opcional)</Label>
             <Select value={form.case_id ?? NONE} onValueChange={(v) => setForm((f: any) => ({ ...f, case_id: v }))}>
-              <SelectTrigger className="mt-1.5"><SelectValue placeholder="Selecione" /></SelectTrigger>
+              <SelectTrigger className="mt-1.5">
+                <SelectValue placeholder="Selecione">
+                  {form.case_id && form.case_id !== NONE ? (selectedCase?.title ?? "Processo") : "Sem vínculo"}
+                </SelectValue>
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value={NONE}>Sem vínculo</SelectItem>
                 {cases.map(c => <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>)}
