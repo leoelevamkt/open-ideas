@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { CaseFormDialog } from "@/components/dialogs/case-form-dialog";
 import { DocumentFormDialog } from "@/components/dialogs/document-form-dialog";
+import { DocumentPreviewDialog } from "@/components/dialogs/document-preview-dialog";
 
 export const Route = createFileRoute("/_authenticated/processos/$id")({
   component: ProcessoDetailPage,
