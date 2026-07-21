@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { formatDate } from "@/lib/format";
 
-export const Route = createFileRoute("/_authenticated/processos")({ component: ProcessosPage });
+export const Route = createFileRoute("/_authenticated/processos/")({ component: ProcessosPage });
 
 function statusColor(s: string) {
   if (s === "Em Andamento") return "bg-blue-100 text-blue-700";
