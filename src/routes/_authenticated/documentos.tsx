@@ -17,8 +17,8 @@ import { formatDate } from "@/lib/format";
 export const Route = createFileRoute("/_authenticated/documentos")({ component: DocumentosPage });
 
 function DocumentosPage() {
-  const { user } = useAuth();
-  const isLawyer = user?.role === "advogado";
+  const { user, isStaff, canEdit } = useAuth();
+  const isLawyer = isStaff;
   const [clientId, setClientId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [preview, setPreview] = useState<{ path: string; name: string } | null>(null);
@@ -59,7 +59,7 @@ function DocumentosPage() {
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input placeholder="Buscar documento…" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
         </div>
-        <DocumentFormDialog defaults={!isLawyer && clientId ? { client_id: clientId } : undefined} />
+        {(canEdit || user?.role === "cliente") && <DocumentFormDialog defaults={!isLawyer && clientId ? { client_id: clientId } : undefined} />}
       </div>
       <div className="flex flex-col gap-2">
         {filtered.map((d: any) => (
@@ -86,7 +86,7 @@ function DocumentosPage() {
                   <ExternalLink className="size-4" />
                 </Button>
               )}
-              {isLawyer && (
+              {canEdit && (
                 <div className="flex items-center gap-1">
                   <DocumentFormDialog document={d} />
                   <Button variant="ghost" size="icon" onClick={() => onDelete(d.id)} className="size-8 text-destructive"><Trash2 className="size-4" /></Button>

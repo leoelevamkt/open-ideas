@@ -24,8 +24,8 @@ function statusColor(s: string) {
 }
 
 function ProcessosPage() {
-  const { user } = useAuth();
-  const isLawyer = user?.role === "advogado";
+  const { user, isStaff, canEdit } = useAuth();
+  const isLawyer = isStaff;
   const [clientId, setClientId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("todos");
@@ -56,7 +56,7 @@ function ProcessosPage() {
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input placeholder="Buscar por título ou número…" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
         </div>
-        {isLawyer && <CaseFormDialog />}
+        {canEdit && <CaseFormDialog />}
       </div>
       <div className="flex gap-1.5 overflow-x-auto pb-1 [&::-webkit-scrollbar]:hidden">
         {(["todos", ...CASE_STATUSES] as const).map(s => (
