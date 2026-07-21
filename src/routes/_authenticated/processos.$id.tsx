@@ -104,6 +104,12 @@ function ProcessoDetailPage() {
           ))}
         </CardContent>
       </Card>
+      <DocumentPreviewDialog
+        open={!!preview}
+        onOpenChange={(o) => !o && setPreview(null)}
+        filePath={preview?.path ?? null}
+        name={preview?.name ?? null}
+      />
     </div>
   );
 }
