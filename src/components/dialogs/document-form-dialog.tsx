@@ -30,8 +30,11 @@ export function DocumentFormDialog({ document, defaults, trigger }: {
   const [file, setFile] = useState<File | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const qc = useQueryClient();
-  const { data: clients = [] } = useQuery({ queryKey: ["clients", "ativo"], queryFn: () => listClients("ativo"), enabled: open });
+  const { data: clients = [] } = useQuery({ queryKey: ["clients", "all"], queryFn: () => listClients(), enabled: open });
   const { data: cases = [] } = useQuery({ queryKey: ["cases"], queryFn: () => listCases(), enabled: open });
+
+  const selectedClient = clients.find((c: any) => c.id === form.client_id);
+  const selectedCase = cases.find((c: any) => c.id === form.case_id);
 
   useEffect(() => {
     if (!open) return;
