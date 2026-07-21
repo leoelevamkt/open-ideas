@@ -5,7 +5,8 @@ import { FileText, Search, Trash2, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { PageHero } from "@/components/page-hero";
 import { DocumentFormDialog } from "@/components/dialogs/document-form-dialog";
-import { listDocuments, deleteDocument, getClientByUserId, getDocumentSignedUrl } from "@/lib/queries";
+import { DocumentPreviewDialog } from "@/components/dialogs/document-preview-dialog";
+import { listDocuments, deleteDocument, getClientByUserId } from "@/lib/queries";
 import { useAuth } from "@/lib/auth-context";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -20,6 +21,7 @@ function DocumentosPage() {
   const isLawyer = user?.role === "advogado";
   const [clientId, setClientId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [preview, setPreview] = useState<{ path: string; name: string } | null>(null);
   const qc = useQueryClient();
 
   useEffect(() => {
@@ -44,12 +46,9 @@ function DocumentosPage() {
     catch (e: any) { toast.error(e.message); }
   }
 
-  async function onOpen(filePath: string | null) {
-    if (!filePath) { toast.error("Este documento não possui arquivo anexado."); return; }
-    try {
-      const url = await getDocumentSignedUrl(filePath);
-      window.open(url, "_blank", "noopener,noreferrer");
-    } catch (e: any) { toast.error(e.message); }
+  function onOpen(d: any) {
+    if (!d.file_path) { toast.error("Este documento não possui arquivo anexado."); return; }
+    setPreview({ path: d.file_path, name: d.name });
   }
 
   return (
@@ -68,7 +67,7 @@ function DocumentosPage() {
             <CardContent className="flex items-center gap-3 p-4">
               <button
                 type="button"
-                onClick={() => onOpen(d.file_path)}
+                onClick={() => onOpen(d)}
                 disabled={!d.file_path}
                 className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-gold/15 text-gold-strong transition hover:bg-gold/25 disabled:opacity-60"
                 aria-label="Abrir documento"
@@ -83,7 +82,7 @@ function DocumentosPage() {
               </div>
               <Badge variant={d.status === "disponivel" ? "default" : "secondary"}>{d.status}</Badge>
               {d.file_path && (
-                <Button variant="ghost" size="icon" onClick={() => onOpen(d.file_path)} className="size-8" aria-label="Abrir">
+                <Button variant="ghost" size="icon" onClick={() => onOpen(d)} className="size-8" aria-label="Abrir">
                   <ExternalLink className="size-4" />
                 </Button>
               )}
@@ -98,6 +97,12 @@ function DocumentosPage() {
         ))}
         {filtered.length === 0 && <p className="py-8 text-center text-sm text-muted-foreground">Nenhum documento.</p>}
       </div>
+      <DocumentPreviewDialog
+        open={!!preview}
+        onOpenChange={(o) => !o && setPreview(null)}
+        filePath={preview?.path ?? null}
+        name={preview?.name ?? null}
+      />
     </div>
   );
 }

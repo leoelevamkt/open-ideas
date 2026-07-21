@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ArrowLeft, Plus } from "lucide-react";
-import { getCase, listTimeline, listDocuments, addTimelineEvent, getDocumentSignedUrl } from "@/lib/queries";
+import { getCase, listTimeline, listDocuments, addTimelineEvent } from "@/lib/queries";
 import { useAuth } from "@/lib/auth-context";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { CaseFormDialog } from "@/components/dialogs/case-form-dialog";
 import { DocumentFormDialog } from "@/components/dialogs/document-form-dialog";
+import { DocumentPreviewDialog } from "@/components/dialogs/document-preview-dialog";
 
 export const Route = createFileRoute("/_authenticated/processos/$id")({
   component: ProcessoDetailPage,
@@ -28,6 +29,7 @@ function ProcessoDetailPage() {
   const { data: c } = useQuery({ queryKey: ["case", id], queryFn: () => getCase(id) });
   const { data: timeline = [] } = useQuery({ queryKey: ["timeline", id], queryFn: () => listTimeline(id) });
   const { data: docs = [] } = useQuery({ queryKey: ["docs", id], queryFn: () => listDocuments({ caseId: id }) });
+  const [preview, setPreview] = useState<{ path: string; name: string } | null>(null);
 
   if (!c) return <p className="text-sm text-muted-foreground">Carregando…</p>;
 
@@ -92,12 +94,7 @@ function ProcessoDetailPage() {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={async () => {
-                      try {
-                        const url = await getDocumentSignedUrl(d.file_path!);
-                        window.open(url, "_blank", "noopener,noreferrer");
-                      } catch (e: any) { toast.error(e.message); }
-                    }}
+                    onClick={() => setPreview({ path: d.file_path!, name: d.name })}
                   >
                     Abrir
                   </Button>
@@ -107,6 +104,12 @@ function ProcessoDetailPage() {
           ))}
         </CardContent>
       </Card>
+      <DocumentPreviewDialog
+        open={!!preview}
+        onOpenChange={(o) => !o && setPreview(null)}
+        filePath={preview?.path ?? null}
+        name={preview?.name ?? null}
+      />
     </div>
   );
 }
