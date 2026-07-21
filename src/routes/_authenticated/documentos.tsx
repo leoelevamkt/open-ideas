@@ -67,7 +67,7 @@ function DocumentosPage() {
             <CardContent className="flex items-center gap-3 p-4">
               <button
                 type="button"
-                onClick={() => onOpen(d.file_path)}
+                onClick={() => onOpen(d)}
                 disabled={!d.file_path}
                 className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-gold/15 text-gold-strong transition hover:bg-gold/25 disabled:opacity-60"
                 aria-label="Abrir documento"
