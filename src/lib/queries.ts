@@ -216,8 +216,14 @@ export async function deleteHearing(id: string) {
 }
 
 export async function saveDocument(payload: any) {
+  const { id, ...rest } = payload;
+  if (id) {
+    const { error } = await supabase.from("documents").update(rest).eq("id", id);
+    if (error) throw error;
+    return;
+  }
   const { data: s } = await supabase.auth.getSession();
-  const row = { ...payload, uploaded_by: s.session?.user.id ?? null, status: "disponivel" };
+  const row = { ...rest, uploaded_by: s.session?.user.id ?? null, status: rest.status ?? "disponivel" };
   const { error } = await supabase.from("documents").insert(row);
   if (error) throw error;
 }
