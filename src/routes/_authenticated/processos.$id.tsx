@@ -93,12 +93,7 @@ function ProcessoDetailPage() {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={async () => {
-                      try {
-                        const url = await getDocumentSignedUrl(d.file_path!);
-                        window.open(url, "_blank", "noopener,noreferrer");
-                      } catch (e: any) { toast.error(e.message); }
-                    }}
+                    onClick={() => setPreview({ path: d.file_path!, name: d.name })}
                   >
                     Abrir
                   </Button>
