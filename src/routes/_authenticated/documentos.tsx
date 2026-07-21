@@ -21,6 +21,7 @@ function DocumentosPage() {
   const isLawyer = user?.role === "advogado";
   const [clientId, setClientId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [preview, setPreview] = useState<{ path: string; name: string } | null>(null);
   const qc = useQueryClient();
 
   useEffect(() => {
@@ -45,12 +46,9 @@ function DocumentosPage() {
     catch (e: any) { toast.error(e.message); }
   }
 
-  async function onOpen(filePath: string | null) {
-    if (!filePath) { toast.error("Este documento não possui arquivo anexado."); return; }
-    try {
-      const url = await getDocumentSignedUrl(filePath);
-      window.open(url, "_blank", "noopener,noreferrer");
-    } catch (e: any) { toast.error(e.message); }
+  function onOpen(d: any) {
+    if (!d.file_path) { toast.error("Este documento não possui arquivo anexado."); return; }
+    setPreview({ path: d.file_path, name: d.name });
   }
 
   return (
