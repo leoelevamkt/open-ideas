@@ -82,7 +82,7 @@ export function ClientPreviewDialog({
                 <Link
                   key={c.id}
                   to={"/processos/$id" as any}
-                  params={{ id: c.id }}
+                  params={{ id: c.id } as any}
                   onClick={() => onOpenChange(false)}
                   className="flex items-center justify-between gap-2 rounded-md border border-border/60 p-2.5 text-sm transition hover:border-gold/50"
                 >
