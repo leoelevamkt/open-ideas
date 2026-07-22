@@ -83,7 +83,7 @@ function ProcessosPage() {
             {LEGAL_AREAS.map(a => <SelectItem key={a} value={a}>{a}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Select value={sortBy} onValueChange={setSortBy}>
+        <Select value={sortBy} onValueChange={(v) => setSortBy(v ?? "updated_desc")}>
           <SelectTrigger><SelectValue placeholder="Ordenar por" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="updated_desc">Atualização (mais recente)</SelectItem>
