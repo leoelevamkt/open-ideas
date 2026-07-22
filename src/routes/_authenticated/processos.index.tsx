@@ -1,16 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Search, Scale } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { PageHero } from "@/components/page-hero";
 import { CaseFormDialog } from "@/components/dialogs/case-form-dialog";
 import { listCases, listCasesWithClient, getClientByUserId } from "@/lib/queries";
 import { useAuth } from "@/lib/auth-context";
-import { CASE_STATUSES } from "@/lib/constants";
+import { CASE_STATUSES, LEGAL_AREAS } from "@/lib/constants";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatDate } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/processos/")({ component: ProcessosPage });
@@ -29,6 +29,8 @@ function ProcessosPage() {
   const [clientId, setClientId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("todos");
+  const [areaFilter, setAreaFilter] = useState<string>("todas");
+  const [sortBy, setSortBy] = useState<string>("updated_desc");
 
   useEffect(() => {
     if (!user || isLawyer) return;
@@ -41,12 +43,27 @@ function ProcessosPage() {
     queryFn: async () => isLawyer ? await listCasesWithClient() : await listCases(clientId ?? undefined),
   });
 
-  const filtered = data.filter((c: any) => {
+  const filtered = useMemo(() => {
     const q = search.toLowerCase();
-    const matchQ = !q || c.title.toLowerCase().includes(q) || c.number?.toLowerCase().includes(q);
-    const matchS = statusFilter === "todos" || c.status === statusFilter;
-    return matchQ && matchS;
-  });
+    const list = data.filter((c: any) => {
+      const matchQ = !q || c.title.toLowerCase().includes(q) || c.number?.toLowerCase().includes(q);
+      const matchS = statusFilter === "todos" || c.status === statusFilter;
+      const matchA = areaFilter === "todas" || c.legal_area === areaFilter;
+      return matchQ && matchS && matchA;
+    });
+    const sorted = [...list].sort((a: any, b: any) => {
+      switch (sortBy) {
+        case "title_asc": return (a.title ?? "").localeCompare(b.title ?? "", "pt-BR");
+        case "title_desc": return (b.title ?? "").localeCompare(a.title ?? "", "pt-BR");
+        case "updated_asc": return new Date(a.updated_at ?? 0).getTime() - new Date(b.updated_at ?? 0).getTime();
+        case "updated_desc": return new Date(b.updated_at ?? 0).getTime() - new Date(a.updated_at ?? 0).getTime();
+        case "created_asc": return new Date(a.created_at ?? 0).getTime() - new Date(b.created_at ?? 0).getTime();
+        case "created_desc": return new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime();
+        default: return 0;
+      }
+    });
+    return sorted;
+  }, [data, search, statusFilter, areaFilter, sortBy]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -57,6 +74,26 @@ function ProcessosPage() {
           <Input placeholder="Buscar por título ou número…" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
         </div>
         {canEdit && <CaseFormDialog />}
+      </div>
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+        <Select value={areaFilter} onValueChange={(v) => setAreaFilter(v ?? "todas")}>
+          <SelectTrigger><SelectValue placeholder="Tipo de processo" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todas">Todos os tipos</SelectItem>
+            {LEGAL_AREAS.map(a => <SelectItem key={a} value={a}>{a}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={sortBy} onValueChange={(v) => setSortBy(v ?? "updated_desc")}>
+          <SelectTrigger><SelectValue placeholder="Ordenar por" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="updated_desc">Atualização (mais recente)</SelectItem>
+            <SelectItem value="updated_asc">Atualização (mais antiga)</SelectItem>
+            <SelectItem value="created_desc">Criação (mais recente)</SelectItem>
+            <SelectItem value="created_asc">Criação (mais antiga)</SelectItem>
+            <SelectItem value="title_asc">Título (A–Z)</SelectItem>
+            <SelectItem value="title_desc">Título (Z–A)</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
       <div className="flex gap-1.5 overflow-x-auto pb-1 [&::-webkit-scrollbar]:hidden">
         {(["todos", ...CASE_STATUSES] as const).map(s => (
