@@ -1,16 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Search, Scale } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { PageHero } from "@/components/page-hero";
 import { CaseFormDialog } from "@/components/dialogs/case-form-dialog";
 import { listCases, listCasesWithClient, getClientByUserId } from "@/lib/queries";
 import { useAuth } from "@/lib/auth-context";
-import { CASE_STATUSES } from "@/lib/constants";
+import { CASE_STATUSES, LEGAL_AREAS } from "@/lib/constants";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatDate } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/processos/")({ component: ProcessosPage });
