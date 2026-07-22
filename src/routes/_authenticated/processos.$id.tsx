@@ -1,9 +1,9 @@
-import { createFileRoute, useParams, Link } from "@tanstack/react-router";
+import { createFileRoute, useParams, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ArrowLeft, Plus, Pencil, Trash2 } from "lucide-react";
-import { getCase, listTimeline, listDocuments, addTimelineEvent, updateTimelineEvent, deleteTimelineEvent } from "@/lib/queries";
+import { getCase, listTimeline, listDocuments, addTimelineEvent, updateTimelineEvent, deleteTimelineEvent, deleteCase } from "@/lib/queries";
 import { useAuth } from "@/lib/auth-context";
 import type { TimelineEvent } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,6 +32,7 @@ function ProcessoDetailPage() {
   const { data: docs = [] } = useQuery({ queryKey: ["docs", id], queryFn: () => listDocuments({ caseId: id }) });
   const [preview, setPreview] = useState<{ path: string; name: string } | null>(null);
   const qc = useQueryClient();
+  const navigate = useNavigate();
 
   if (!c) return <p className="text-sm text-muted-foreground">Carregando…</p>;
 
@@ -41,6 +42,16 @@ function ProcessoDetailPage() {
       await deleteTimelineEvent(tid);
       toast.success("Movimentação excluída.");
       qc.invalidateQueries({ queryKey: ["timeline", id] });
+    } catch (err: any) { toast.error(err.message); }
+  }
+
+  async function onDeleteCase() {
+    if (!confirm("Excluir este processo? Esta ação não pode ser desfeita.")) return;
+    try {
+      await deleteCase(id);
+      toast.success("Processo excluído.");
+      qc.invalidateQueries({ queryKey: ["cases"] });
+      navigate({ to: "/processos" as any });
     } catch (err: any) { toast.error(err.message); }
   }
 
@@ -54,7 +65,14 @@ function ProcessoDetailPage() {
           <h1 className="font-heading text-2xl font-semibold">{c.title}</h1>
           <p className="text-sm text-muted-foreground">Nº {c.number} · <Badge variant="outline">{c.status}</Badge></p>
         </div>
-        {isLawyer && <CaseFormDialog caseItem={c} />}
+        {isLawyer && (
+          <div className="flex shrink-0 items-center gap-2">
+            <CaseFormDialog caseItem={c} />
+            <Button variant="outline" size="sm" className="text-destructive" onClick={onDeleteCase}>
+              <Trash2 className="mr-1 size-4" /> Excluir
+            </Button>
+          </div>
+        )}
       </div>
 
       <Card>
