@@ -32,6 +32,7 @@ function ProcessoDetailPage() {
   const { data: docs = [] } = useQuery({ queryKey: ["docs", id], queryFn: () => listDocuments({ caseId: id }) });
   const [preview, setPreview] = useState<{ path: string; name: string } | null>(null);
   const qc = useQueryClient();
+  const navigate = useNavigate();
 
   if (!c) return <p className="text-sm text-muted-foreground">Carregando…</p>;
 
@@ -41,6 +42,16 @@ function ProcessoDetailPage() {
       await deleteTimelineEvent(tid);
       toast.success("Movimentação excluída.");
       qc.invalidateQueries({ queryKey: ["timeline", id] });
+    } catch (err: any) { toast.error(err.message); }
+  }
+
+  async function onDeleteCase() {
+    if (!confirm("Excluir este processo? Esta ação não pode ser desfeita.")) return;
+    try {
+      await deleteCase(id);
+      toast.success("Processo excluído.");
+      qc.invalidateQueries({ queryKey: ["cases"] });
+      navigate({ to: "/processos" as any });
     } catch (err: any) { toast.error(err.message); }
   }
 
