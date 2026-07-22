@@ -65,7 +65,14 @@ function ProcessoDetailPage() {
           <h1 className="font-heading text-2xl font-semibold">{c.title}</h1>
           <p className="text-sm text-muted-foreground">Nº {c.number} · <Badge variant="outline">{c.status}</Badge></p>
         </div>
-        {isLawyer && <CaseFormDialog caseItem={c} />}
+        {isLawyer && (
+          <div className="flex shrink-0 items-center gap-2">
+            <CaseFormDialog caseItem={c} />
+            <Button variant="outline" size="sm" className="text-destructive" onClick={onDeleteCase}>
+              <Trash2 className="mr-1 size-4" /> Excluir
+            </Button>
+          </div>
+        )}
       </div>
 
       <Card>
