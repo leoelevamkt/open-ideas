@@ -76,7 +76,7 @@ function ProcessosPage() {
         {canEdit && <CaseFormDialog />}
       </div>
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-        <Select value={areaFilter} onValueChange={setAreaFilter}>
+        <Select value={areaFilter} onValueChange={(v) => setAreaFilter(v ?? "todas")}>
           <SelectTrigger><SelectValue placeholder="Tipo de processo" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="todas">Todos os tipos</SelectItem>
