@@ -1,13 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { CalendarClock, MapPin, Video } from "lucide-react";
+import { toast } from "sonner";
+import { MapPin, Trash2, Video } from "lucide-react";
 import { PageHero } from "@/components/page-hero";
 import { HearingFormDialog } from "@/components/dialogs/hearing-form-dialog";
-import { listHearings, getClientByUserId } from "@/lib/queries";
+import { listHearings, getClientByUserId, deleteHearing } from "@/lib/queries";
 import { useAuth } from "@/lib/auth-context";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { formatDate, relativeDate } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/agenda")({ component: AgendaPage });
