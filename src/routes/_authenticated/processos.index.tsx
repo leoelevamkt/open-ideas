@@ -15,6 +15,15 @@ import { formatDate } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/processos/")({ component: ProcessosPage });
 
+const SORT_LABELS: Record<string, string> = {
+  updated_desc: "Atualização (mais recente)",
+  updated_asc: "Atualização (mais antiga)",
+  created_desc: "Criação (mais recente)",
+  created_asc: "Criação (mais antiga)",
+  title_asc: "Título (A–Z)",
+  title_desc: "Título (Z–A)",
+};
+
 function statusColor(s: string) {
   if (s === "Em Andamento") return "bg-blue-100 text-blue-700";
   if (s === "Audiência Marcada") return "bg-amber-100 text-amber-700";
