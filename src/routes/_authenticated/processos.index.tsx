@@ -15,6 +15,15 @@ import { formatDate } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/processos/")({ component: ProcessosPage });
 
+const SORT_LABELS: Record<string, string> = {
+  updated_desc: "Atualização (mais recente)",
+  updated_asc: "Atualização (mais antiga)",
+  created_desc: "Criação (mais recente)",
+  created_asc: "Criação (mais antiga)",
+  title_asc: "Título (A–Z)",
+  title_desc: "Título (Z–A)",
+};
+
 function statusColor(s: string) {
   if (s === "Em Andamento") return "bg-blue-100 text-blue-700";
   if (s === "Audiência Marcada") return "bg-amber-100 text-amber-700";
@@ -77,21 +86,24 @@ function ProcessosPage() {
       </div>
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         <Select value={areaFilter} onValueChange={(v) => setAreaFilter(v ?? "todas")}>
-          <SelectTrigger><SelectValue placeholder="Tipo de processo" /></SelectTrigger>
+          <SelectTrigger>
+            <SelectValue placeholder="Tipo de processo">
+              {areaFilter === "todas" ? "Todos os tipos" : areaFilter}
+            </SelectValue>
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="todas">Todos os tipos</SelectItem>
             {LEGAL_AREAS.map(a => <SelectItem key={a} value={a}>{a}</SelectItem>)}
           </SelectContent>
         </Select>
         <Select value={sortBy} onValueChange={(v) => setSortBy(v ?? "updated_desc")}>
-          <SelectTrigger><SelectValue placeholder="Ordenar por" /></SelectTrigger>
+          <SelectTrigger>
+            <SelectValue placeholder="Ordenar por">{SORT_LABELS[sortBy]}</SelectValue>
+          </SelectTrigger>
           <SelectContent>
-            <SelectItem value="updated_desc">Atualização (mais recente)</SelectItem>
-            <SelectItem value="updated_asc">Atualização (mais antiga)</SelectItem>
-            <SelectItem value="created_desc">Criação (mais recente)</SelectItem>
-            <SelectItem value="created_asc">Criação (mais antiga)</SelectItem>
-            <SelectItem value="title_asc">Título (A–Z)</SelectItem>
-            <SelectItem value="title_desc">Título (Z–A)</SelectItem>
+            {Object.entries(SORT_LABELS).map(([v, l]) => (
+              <SelectItem key={v} value={v}>{l}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
