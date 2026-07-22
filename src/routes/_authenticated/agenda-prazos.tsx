@@ -1,18 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState, useMemo } from "react";
-import { CalendarClock, MapPin, User, Scale } from "lucide-react";
-import { listHearings, getClientByUserId } from "@/lib/queries";
+import { CalendarClock, MapPin, User, Scale, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { listHearings, getClientByUserId, deleteHearing } from "@/lib/queries";
 import { useAuth } from "@/lib/auth-context";
 import { PageHero } from "@/components/page-hero";
+import { HearingFormDialog } from "@/components/dialogs/hearing-form-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/agenda-prazos")({
   component: PrazosPage,
 });
 
-const TYPE_FILTERS = ["todos", "Audiência", "Prazo", "Reunião", "Diligência"] as const;
+const TYPE_FILTERS = ["todos", "Presencial", "Online", "Híbrida"] as const;
 
 function bucketLabel(dateStr: string): string {
   const today = new Date(); today.setHours(0, 0, 0, 0);
@@ -26,18 +29,18 @@ function bucketLabel(dateStr: string): string {
 }
 
 function typeColor(t?: string | null) {
-  if (t === "Audiência") return "bg-blue-100 text-blue-700";
-  if (t === "Prazo") return "bg-red-100 text-red-700";
-  if (t === "Reunião") return "bg-emerald-100 text-emerald-700";
-  if (t === "Diligência") return "bg-amber-100 text-amber-700";
+  if (t === "Presencial") return "bg-blue-100 text-blue-700";
+  if (t === "Online") return "bg-emerald-100 text-emerald-700";
+  if (t === "Híbrida") return "bg-amber-100 text-amber-700";
   return "bg-muted text-muted-foreground";
 }
 
 function PrazosPage() {
-  const { user, isStaff } = useAuth();
+  const { user, isStaff, canEdit } = useAuth();
   const isLawyer = isStaff;
   const [clientId, setClientId] = useState<string | null>(null);
   const [filter, setFilter] = useState<(typeof TYPE_FILTERS)[number]>("todos");
+  const qc = useQueryClient();
 
   useEffect(() => {
     if (!user || isLawyer) return;
@@ -71,9 +74,21 @@ function PrazosPage() {
   const order = ["Hoje", "Amanhã", "Próximos 7 dias", "Este mês", "Mais adiante"];
   const isEmpty = Object.keys(grouped).length === 0;
 
+  async function onDelete(id: string) {
+    if (!confirm("Excluir este evento?")) return;
+    try {
+      await deleteHearing(id);
+      toast.success("Evento excluído.");
+      qc.invalidateQueries({ queryKey: ["hearings-all"] });
+      qc.invalidateQueries({ queryKey: ["hearings"] });
+    } catch (e: any) { toast.error(e.message); }
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <PageHero title="Agenda de Prazos" subtitle="Próximos compromissos organizados por data." />
+
+      {canEdit && <div className="flex justify-end"><HearingFormDialog /></div>}
 
       <div className="flex gap-1.5 overflow-x-auto pb-1 [&::-webkit-scrollbar]:hidden">
         {TYPE_FILTERS.map(t => (
@@ -138,6 +153,14 @@ function PrazosPage() {
                         )}
                       </div>
                       {h.notes && <p className="mt-1.5 line-clamp-2 text-xs text-muted-foreground">{h.notes}</p>}
+                      {canEdit && (
+                        <div className="mt-2 flex justify-end gap-1.5">
+                          <HearingFormDialog hearing={h} />
+                          <Button variant="ghost" size="icon" className="size-8 text-destructive" onClick={() => onDelete(h.id)}>
+                            <Trash2 className="size-4" />
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </CardContent>

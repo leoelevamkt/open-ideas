@@ -282,3 +282,17 @@ export async function addTimelineEvent(payload: any) {
   const { error } = await supabase.from("timeline_events").insert(payload);
   if (error) throw error;
 }
+
+export async function updateTimelineEvent(id: string, patch: any) {
+  const { error } = await supabase.from("timeline_events").update(patch).eq("id", id);
+  if (error) throw error;
+}
+export async function deleteTimelineEvent(id: string) {
+  const { error } = await supabase.from("timeline_events").delete().eq("id", id);
+  if (error) throw error;
+}
+
+export async function getClientFullById(id: string) {
+  const { data } = await supabase.from("clients").select("*").eq("id", id).maybeSingle();
+  return data as Client | null;
+}

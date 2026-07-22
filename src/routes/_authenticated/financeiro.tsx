@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { Wallet, CheckCircle2, Clock, Trash2, ExternalLink } from "lucide-react";
+import { Wallet, CheckCircle2, Clock, Trash2, ExternalLink, Paperclip, CreditCard } from "lucide-react";
 import { toast } from "sonner";
 import { PageHero } from "@/components/page-hero";
 import { PromoBanner } from "@/components/promo-banner";
@@ -9,12 +9,14 @@ import { StatCard } from "@/components/stat-card";
 import { BankInfoCard } from "@/components/finance/bank-info-card";
 import { BankInfoFormDialog } from "@/components/dialogs/bank-info-form-dialog";
 import { InvoiceFormDialog } from "@/components/dialogs/invoice-form-dialog";
+import { DocumentPreviewDialog } from "@/components/dialogs/document-preview-dialog";
 import { CopyButton } from "@/components/finance/copy-button";
 import { getBankInfo, listInvoices, financeStats, setInvoiceStatus, deleteInvoice, getClientByUserId } from "@/lib/queries";
 import { pageBanners } from "@/lib/constants";
 import { useAuth } from "@/lib/auth-context";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { formatCurrency, formatDate, effectiveInvoiceStatus, invoiceStatusClass, invoiceStatusLabel } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/financeiro")({ component: FinanceiroPage });
@@ -23,6 +25,7 @@ function FinanceiroPage() {
   const { user } = useAuth();
   const isLawyer = user?.role === "advogado";
   const [clientId, setClientId] = useState<string | null>(null);
+  const [preview, setPreview] = useState<{ path: string; name: string } | null>(null);
   const qc = useQueryClient();
 
   useEffect(() => {
@@ -100,6 +103,31 @@ function FinanceiroPage() {
                       <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${invoiceStatusClass(eff)}`}>{invoiceStatusLabel(eff)}</span>
                     </div>
                   </div>
+
+                  {(i.payment_method || i.installments) && (
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {i.payment_method && (
+                        <Badge variant="outline" className="text-[10px]">
+                          <CreditCard className="mr-1 size-3" />
+                          {i.payment_method}
+                          {i.payment_method === "Parcelado" && i.installments ? ` · ${i.installments}x` : ""}
+                        </Badge>
+                      )}
+                      {i.file_path && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-6 px-2 text-[10px]"
+                          onClick={() => setPreview({ path: i.file_path, name: i.description || "Boleto" })}
+                        >
+                          <Paperclip className="mr-1 size-3" /> Ver anexo
+                        </Button>
+                      )}
+                    </div>
+                  )}
+
+                  {i.notes && <p className="mt-2 text-xs text-muted-foreground whitespace-pre-wrap">{i.notes}</p>}
+
                   {(i.pix_copy_paste || i.barcode || i.payment_link) && eff !== "pago" && (
                     <div className="mt-3 flex flex-wrap gap-2">
                       {i.pix_copy_paste && <CopyButton value={i.pix_copy_paste} label="PIX copia e cola" />}
@@ -120,6 +148,13 @@ function FinanceiroPage() {
           })}
         </div>
       </section>
+
+      <DocumentPreviewDialog
+        open={!!preview}
+        onOpenChange={(o) => !o && setPreview(null)}
+        filePath={preview?.path ?? null}
+        name={preview?.name ?? null}
+      />
     </div>
   );
 }

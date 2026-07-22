@@ -3,8 +3,10 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Archive, Mail, Phone, Search, User as UserIcon } from "lucide-react";
 import { toast } from "sonner";
+import type { Client } from "@/lib/types";
 import { PageHero } from "@/components/page-hero";
 import { ClientFormDialog } from "@/components/dialogs/client-form-dialog";
+import { ClientPreviewDialog } from "@/components/dialogs/client-preview-dialog";
 import { archiveClient, listClients } from "@/lib/queries";
 import { useAuth } from "@/lib/auth-context";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,10 +17,11 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/_authenticated/clientes")({ component: ClientesPage });
 
 function ClientesPage() {
-  const { user, isStaff, canEdit } = useAuth();
+  const { isStaff, canEdit } = useAuth();
   const isLawyer = isStaff;
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState<"ativo" | "arquivado">("ativo");
+  const [preview, setPreview] = useState<Client | null>(null);
   const qc = useQueryClient();
   const { data = [] } = useQuery({ queryKey: ["clients", tab], queryFn: () => listClients(tab) });
   const filtered = data.filter(c => c.full_name.toLowerCase().includes(search.toLowerCase()) || (c.cpf ?? "").includes(search));
@@ -50,7 +53,7 @@ function ClientesPage() {
       )}
       <div className="flex flex-col gap-2">
         {filtered.map(c => (
-          <Card key={c.id} className="transition hover:border-gold/40">
+          <Card key={c.id} className="cursor-pointer transition hover:border-gold/40" onClick={() => setPreview(c)}>
             <CardContent className="p-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex min-w-0 items-start gap-3">
@@ -69,7 +72,7 @@ function ClientesPage() {
                 <Badge variant={c.status === "ativo" ? "default" : "secondary"}>{c.status}</Badge>
               </div>
               {canEdit && (
-                <div className="mt-3 flex justify-end gap-2">
+                <div className="mt-3 flex justify-end gap-2" onClick={(e) => e.stopPropagation()}>
                   <Button variant="outline" size="sm" onClick={() => toggleArchive(c.id)}><Archive className="mr-1 size-3.5" /> {tab === "ativo" ? "Arquivar" : "Reativar"}</Button>
                   <ClientFormDialog client={c} />
                 </div>
@@ -79,6 +82,7 @@ function ClientesPage() {
         ))}
         {filtered.length === 0 && <p className="py-8 text-center text-sm text-muted-foreground">Nenhum cliente encontrado.</p>}
       </div>
+      <ClientPreviewDialog client={preview} open={!!preview} onOpenChange={(o) => !o && setPreview(null)} />
     </div>
   );
 }
