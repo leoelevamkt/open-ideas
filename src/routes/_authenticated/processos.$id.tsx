@@ -1,10 +1,11 @@
 import { createFileRoute, useParams, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, Plus } from "lucide-react";
-import { getCase, listTimeline, listDocuments, addTimelineEvent } from "@/lib/queries";
+import { ArrowLeft, Plus, Pencil, Trash2 } from "lucide-react";
+import { getCase, listTimeline, listDocuments, addTimelineEvent, updateTimelineEvent, deleteTimelineEvent } from "@/lib/queries";
 import { useAuth } from "@/lib/auth-context";
+import type { TimelineEvent } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -30,8 +31,18 @@ function ProcessoDetailPage() {
   const { data: timeline = [] } = useQuery({ queryKey: ["timeline", id], queryFn: () => listTimeline(id) });
   const { data: docs = [] } = useQuery({ queryKey: ["docs", id], queryFn: () => listDocuments({ caseId: id }) });
   const [preview, setPreview] = useState<{ path: string; name: string } | null>(null);
+  const qc = useQueryClient();
 
   if (!c) return <p className="text-sm text-muted-foreground">Carregando…</p>;
+
+  async function onDeleteTimeline(tid: string) {
+    if (!confirm("Excluir esta movimentação?")) return;
+    try {
+      await deleteTimelineEvent(tid);
+      toast.success("Movimentação excluída.");
+      qc.invalidateQueries({ queryKey: ["timeline", id] });
+    } catch (err: any) { toast.error(err.message); }
+  }
 
   return (
     <div className="flex flex-col gap-5">
@@ -64,15 +75,27 @@ function ProcessoDetailPage() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-base">Linha do tempo</CardTitle>
-          {isLawyer && <AddTimelineDialog caseId={id} />}
+          {isLawyer && <TimelineFormDialog caseId={id} />}
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
           {timeline.length === 0 && <p className="text-sm text-muted-foreground">Sem movimentações.</p>}
           {timeline.map((t) => (
-            <div key={t.id} className="border-l-2 border-accent/60 pl-3">
-              <p className="text-sm font-medium">{t.title}</p>
-              <p className="text-xs text-muted-foreground">{new Date(t.event_date).toLocaleDateString("pt-BR")}</p>
-              {t.description && <p className="mt-1 text-xs text-muted-foreground">{t.description}</p>}
+            <div key={t.id} className="group border-l-2 border-accent/60 pl-3">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium">{t.title}</p>
+                  <p className="text-xs text-muted-foreground">{new Date(t.event_date).toLocaleDateString("pt-BR")}{t.responsible ? ` · ${t.responsible}` : ""}</p>
+                  {t.description && <p className="mt-1 text-xs text-muted-foreground">{t.description}</p>}
+                </div>
+                {isLawyer && (
+                  <div className="flex shrink-0 items-center gap-1">
+                    <TimelineFormDialog caseId={id} event={t} />
+                    <Button variant="ghost" size="icon" className="size-7 text-destructive" onClick={() => onDeleteTimeline(t.id)}>
+                      <Trash2 className="size-3.5" />
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
           ))}
         </CardContent>
@@ -114,24 +137,33 @@ function ProcessoDetailPage() {
   );
 }
 
-function AddTimelineDialog({ caseId }: { caseId: string }) {
+function TimelineFormDialog({ caseId, event }: { caseId: string; event?: TimelineEvent }) {
+  const editing = !!event;
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const qc = useQueryClient();
+
+  useEffect(() => { /* noop */ }, [open]);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setSaving(true);
     const fd = new FormData(e.currentTarget);
+    const payload = {
+      case_id: caseId,
+      title: String(fd.get("title") || ""),
+      description: (fd.get("description") as string) || null,
+      responsible: (fd.get("responsible") as string) || null,
+      event_date: (fd.get("event_date") as string) || new Date().toISOString().slice(0, 10),
+    };
     try {
-      await addTimelineEvent({
-        case_id: caseId,
-        title: String(fd.get("title") || ""),
-        description: (fd.get("description") as string) || null,
-        responsible: (fd.get("responsible") as string) || null,
-        event_date: (fd.get("event_date") as string) || new Date().toISOString().slice(0, 10),
-      });
-      toast.success("Movimentação registrada.");
+      if (editing) {
+        await updateTimelineEvent(event!.id, payload);
+        toast.success("Movimentação atualizada.");
+      } else {
+        await addTimelineEvent(payload);
+        toast.success("Movimentação registrada.");
+      }
       qc.invalidateQueries({ queryKey: ["timeline", caseId] });
       setOpen(false);
     } catch (err: any) { toast.error(err.message); } finally { setSaving(false); }
@@ -140,18 +172,20 @@ function AddTimelineDialog({ caseId }: { caseId: string }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" variant="outline"><Plus className="mr-1 size-4" /> Adicionar</Button>
+        {editing
+          ? <Button variant="ghost" size="icon" className="size-7"><Pencil className="size-3.5" /></Button>
+          : <Button size="sm" variant="outline"><Plus className="mr-1 size-4" /> Adicionar</Button>}
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Nova movimentação</DialogTitle>
-          <DialogDescription>Registre um novo evento na linha do tempo.</DialogDescription>
+          <DialogTitle>{editing ? "Editar movimentação" : "Nova movimentação"}</DialogTitle>
+          <DialogDescription>{editing ? "Atualize os dados do evento." : "Registre um novo evento na linha do tempo."}</DialogDescription>
         </DialogHeader>
         <form onSubmit={onSubmit} className="flex flex-col gap-3">
-          <div><Label>Título *</Label><Input name="title" required className="mt-1.5" /></div>
-          <div><Label>Data *</Label><Input type="date" name="event_date" required defaultValue={new Date().toISOString().slice(0, 10)} className="mt-1.5" /></div>
-          <div><Label>Responsável</Label><Input name="responsible" className="mt-1.5" /></div>
-          <div><Label>Descrição</Label><Textarea name="description" rows={3} className="mt-1.5" /></div>
+          <div><Label>Título *</Label><Input name="title" required defaultValue={event?.title ?? ""} className="mt-1.5" /></div>
+          <div><Label>Data *</Label><Input type="date" name="event_date" required defaultValue={event?.event_date ?? new Date().toISOString().slice(0, 10)} className="mt-1.5" /></div>
+          <div><Label>Responsável</Label><Input name="responsible" defaultValue={event?.responsible ?? ""} className="mt-1.5" /></div>
+          <div><Label>Descrição</Label><Textarea name="description" rows={3} defaultValue={event?.description ?? ""} className="mt-1.5" /></div>
           <DialogFooter><Button type="submit" disabled={saving}>{saving ? "Salvando…" : "Salvar"}</Button></DialogFooter>
         </form>
       </DialogContent>
