@@ -200,6 +200,11 @@ export async function saveCase(payload: any) {
   }
 }
 
+export async function deleteCase(id: string) {
+  const { error } = await supabase.from("cases").delete().eq("id", id);
+  if (error) throw error;
+}
+
 export async function saveHearing(payload: any) {
   if (payload.id) {
     const { id, ...rest } = payload;
