@@ -1,9 +1,9 @@
-import { createFileRoute, useParams, Link } from "@tanstack/react-router";
+import { createFileRoute, useParams, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ArrowLeft, Plus, Pencil, Trash2 } from "lucide-react";
-import { getCase, listTimeline, listDocuments, addTimelineEvent, updateTimelineEvent, deleteTimelineEvent } from "@/lib/queries";
+import { getCase, listTimeline, listDocuments, addTimelineEvent, updateTimelineEvent, deleteTimelineEvent, deleteCase } from "@/lib/queries";
 import { useAuth } from "@/lib/auth-context";
 import type { TimelineEvent } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
