@@ -299,11 +299,16 @@ export type Database = {
           created_by: string | null
           description: string
           due_date: string
+          file_path: string | null
           id: string
+          installments: number | null
+          mime_type: string | null
           notes: string | null
           paid_at: string | null
           payment_link: string | null
+          payment_method: string | null
           pix_copy_paste: string | null
+          size_bytes: number | null
           status: string
         }
         Insert: {
@@ -315,11 +320,16 @@ export type Database = {
           created_by?: string | null
           description: string
           due_date: string
+          file_path?: string | null
           id?: string
+          installments?: number | null
+          mime_type?: string | null
           notes?: string | null
           paid_at?: string | null
           payment_link?: string | null
+          payment_method?: string | null
           pix_copy_paste?: string | null
+          size_bytes?: number | null
           status?: string
         }
         Update: {
@@ -331,11 +341,16 @@ export type Database = {
           created_by?: string | null
           description?: string
           due_date?: string
+          file_path?: string | null
           id?: string
+          installments?: number | null
+          mime_type?: string | null
           notes?: string | null
           paid_at?: string | null
           payment_link?: string | null
+          payment_method?: string | null
           pix_copy_paste?: string | null
+          size_bytes?: number | null
           status?: string
         }
         Relationships: [
