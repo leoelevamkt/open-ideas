@@ -39,7 +39,13 @@ function ProcessosPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("todos");
   const [areaFilter, setAreaFilter] = useState<string>("todas");
-  const [sortBy, setSortBy] = useState<string>("updated_desc");
+  const [sortBy, setSortBy] = useState<string>(() => {
+    if (typeof window === "undefined") return "updated_desc";
+    return window.localStorage.getItem("processos-sort") ?? "updated_desc";
+  });
+  useEffect(() => {
+    try { window.localStorage.setItem("processos-sort", sortBy); } catch {}
+  }, [sortBy]);
 
   useEffect(() => {
     if (!user || isLawyer) return;

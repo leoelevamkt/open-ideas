@@ -176,11 +176,13 @@ export async function financeStats() {
 export async function saveClient(payload: any) {
   if (payload.id) {
     const { id, ...rest } = payload;
-    const { error } = await supabase.from("clients").update(rest).eq("id", id);
+    const { data, error } = await supabase.from("clients").update(rest).eq("id", id).select().maybeSingle();
     if (error) throw error;
+    return data;
   } else {
-    const { error } = await supabase.from("clients").insert(payload);
+    const { data, error } = await supabase.from("clients").insert(payload).select().maybeSingle();
     if (error) throw error;
+    return data;
   }
 }
 export async function archiveClient(id: string, current: "ativo" | "arquivado") {
@@ -189,14 +191,33 @@ export async function archiveClient(id: string, current: "ativo" | "arquivado") 
   if (error) throw error;
 }
 
+// Verifica se já existe outro processo com o mesmo número. Retorna o registro caso encontre.
+export async function findCaseByNumber(number: string, excludeId?: string) {
+  const clean = number.trim();
+  if (!clean) return null;
+  let q = supabase.from("cases").select("id,title,number").eq("number", clean).limit(1);
+  if (excludeId) q = q.neq("id", excludeId);
+  const { data, error } = await q.maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
 export async function saveCase(payload: any) {
+  if (payload.number) {
+    const dup = await findCaseByNumber(payload.number, payload.id);
+    if (dup) {
+      throw new Error(`Número de processo já cadastrado: "${dup.title}".`);
+    }
+  }
   if (payload.id) {
     const { id, ...rest } = payload;
-    const { error } = await supabase.from("cases").update({ ...rest, updated_at: new Date().toISOString() }).eq("id", id);
+    const { data, error } = await supabase.from("cases").update({ ...rest, updated_at: new Date().toISOString() }).eq("id", id).select().maybeSingle();
     if (error) throw error;
+    return data;
   } else {
-    const { error } = await supabase.from("cases").insert(payload);
+    const { data, error } = await supabase.from("cases").insert(payload).select().maybeSingle();
     if (error) throw error;
+    return data;
   }
 }
 
