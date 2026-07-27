@@ -5,7 +5,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { routeTree } from "./routeTree.gen";
 import { Toaster } from "sonner";
 import { AuthProvider } from "@/lib/auth-context";
+import { registerPWA } from "@/lib/pwa";
 import "./styles.css";
+
+registerPWA();
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 30_000, retry: 1 } },
