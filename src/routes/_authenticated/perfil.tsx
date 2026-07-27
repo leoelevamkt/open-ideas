@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { ThemeSwitcher } from "@/components/theme-switcher";
 
 export const Route = createFileRoute("/_authenticated/perfil")({
   component: PerfilPage,
@@ -51,6 +52,16 @@ function PerfilPage() {
             <Button onClick={save} disabled={saving}>{saving ? "Salvando…" : "Salvar"}</Button>
             <Button variant="outline" onClick={signOut}>Sair</Button>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Aparência</CardTitle>
+          <p className="text-xs text-muted-foreground">Escolha o fundo do aplicativo. O tema escuro é indicado para quem tem sensibilidade à luz ou dificuldade de leitura em fundos claros.</p>
+        </CardHeader>
+        <CardContent>
+          <ThemeSwitcher />
         </CardContent>
       </Card>
     </div>
