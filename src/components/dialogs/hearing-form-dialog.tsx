@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -11,15 +11,47 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-export function HearingFormDialog({ hearing }: { hearing?: any }) {
-  const [open, setOpen] = useState(false);
+export function HearingFormDialog({
+  hearing,
+  open: controlledOpen,
+  onOpenChange,
+  defaultCaseId,
+  defaultClientId,
+}: {
+  hearing?: any;
+  open?: boolean;
+  onOpenChange?: (v: boolean) => void;
+  defaultCaseId?: string;
+  defaultClientId?: string;
+}) {
+  const [uOpen, setUOpen] = useState(false);
+  const open = controlledOpen ?? uOpen;
+  const setOpen = onOpenChange ?? setUOpen;
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<any>({});
   const qc = useQueryClient();
   const { data: clients = [] } = useQuery({ queryKey: ["clients", "all"], queryFn: () => listClients(), enabled: open });
   const { data: cases = [] } = useQuery({ queryKey: ["cases"], queryFn: () => listCases(), enabled: open });
 
-  useEffect(() => { if (open) setForm(hearing ?? { type: "Presencial" }); }, [open, hearing]);
+  const clientsSorted = useMemo(
+    () => [...clients].sort((a: any, b: any) => (a.full_name ?? "").localeCompare(b.full_name ?? "", "pt-BR")),
+    [clients],
+  );
+  // Processos em ordem alfabética por título (usado na aba de marcar audiências).
+  const casesSorted = useMemo(
+    () => [...cases].sort((a: any, b: any) => (a.title ?? "").localeCompare(b.title ?? "", "pt-BR")),
+    [cases],
+  );
+
+  useEffect(() => {
+    if (open) {
+      setForm(hearing ?? {
+        type: "Presencial",
+        case_id: defaultCaseId ?? null,
+        client_id: defaultClientId ?? null,
+      });
+    }
+  }, [open, hearing, defaultCaseId, defaultClientId]);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault(); setSaving(true);
@@ -36,9 +68,11 @@ export function HearingFormDialog({ hearing }: { hearing?: any }) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {hearing ? <Button variant="outline" size="sm">Editar</Button> : <Button><Plus className="mr-1 h-4 w-4" /> Nova audiência</Button>}
-      </DialogTrigger>
+      {controlledOpen === undefined && (
+        <DialogTrigger asChild>
+          {hearing ? <Button variant="outline" size="sm">Editar</Button> : <Button><Plus className="mr-1 h-4 w-4" /> Nova audiência</Button>}
+        </DialogTrigger>
+      )}
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader><DialogTitle>{hearing ? "Editar audiência" : "Nova audiência"}</DialogTitle><DialogDescription>Agende uma audiência ou compromisso.</DialogDescription></DialogHeader>
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
@@ -47,14 +81,14 @@ export function HearingFormDialog({ hearing }: { hearing?: any }) {
             <Label>Cliente *</Label>
             <Select value={form.client_id ?? ""} onValueChange={(v) => setForm((f: any) => ({ ...f, client_id: v }))}>
               <SelectTrigger className="mt-1.5"><SelectValue placeholder="Selecione o cliente" /></SelectTrigger>
-              <SelectContent>{clients.map(c => <SelectItem key={c.id} value={c.id}>{c.full_name}</SelectItem>)}</SelectContent>
+              <SelectContent>{clientsSorted.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.full_name}</SelectItem>)}</SelectContent>
             </Select>
           </div>
           <div>
             <Label>Processo</Label>
             <Select value={form.case_id ?? ""} onValueChange={(v) => setForm((f: any) => ({ ...f, case_id: v }))}>
               <SelectTrigger className="mt-1.5"><SelectValue placeholder="Selecione (opcional)" /></SelectTrigger>
-              <SelectContent>{cases.map(c => <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>)}</SelectContent>
+              <SelectContent>{casesSorted.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>)}</SelectContent>
             </Select>
           </div>
           <div className="grid grid-cols-2 gap-3">

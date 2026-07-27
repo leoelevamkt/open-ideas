@@ -6,8 +6,10 @@ import { routeTree } from "./routeTree.gen";
 import { Toaster } from "sonner";
 import { AuthProvider } from "@/lib/auth-context";
 import { registerPWA } from "@/lib/pwa";
+import { initTheme } from "@/lib/theme";
 import "./styles.css";
 
+initTheme();
 registerPWA();
 
 const queryClient = new QueryClient({
