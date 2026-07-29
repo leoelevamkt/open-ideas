@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { MapPin, Trash2, Video } from "lucide-react";
 import { PageHero } from "@/components/page-hero";
 import { HearingFormDialog } from "@/components/dialogs/hearing-form-dialog";
+import { HearingPreviewDialog } from "@/components/dialogs/hearing-preview-dialog";
 import { listHearings, getClientByUserId, deleteHearing } from "@/lib/queries";
 import { useAuth } from "@/lib/auth-context";
 import { Card, CardContent } from "@/components/ui/card";
