@@ -7,6 +7,7 @@ import { listHearings, getClientByUserId, deleteHearing } from "@/lib/queries";
 import { useAuth } from "@/lib/auth-context";
 import { PageHero } from "@/components/page-hero";
 import { HearingFormDialog } from "@/components/dialogs/hearing-form-dialog";
+import { HearingPreviewDialog } from "@/components/dialogs/hearing-preview-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -73,6 +74,7 @@ function PrazosPage() {
 
   const order = ["Hoje", "Amanhã", "Próximos 7 dias", "Este mês", "Mais adiante"];
   const isEmpty = Object.keys(grouped).length === 0;
+  const [preview, setPreview] = useState<any | null>(null);
 
   async function onDelete(id: string) {
     if (!confirm("Excluir este evento?")) return;
@@ -122,7 +124,7 @@ function PrazosPage() {
           {grouped[bucket].map((h: any) => {
             const d = new Date(h.hearing_date + "T00:00:00");
             return (
-              <Card key={h.id} className="transition hover:border-gold/50">
+              <Card key={h.id} className="cursor-pointer transition hover:border-gold/50" onClick={() => setPreview(h)}>
                 <CardContent className="p-4">
                   <div className="flex items-start gap-3">
                     <div className="flex size-12 shrink-0 flex-col items-center justify-center rounded-lg bg-primary text-primary-foreground">
@@ -146,7 +148,7 @@ function PrazosPage() {
                           <span className="inline-flex items-center gap-1"><MapPin className="size-3" />{h.location}</span>
                         )}
                         {h.case_title && (
-                          <span className="inline-flex items-center gap-1"><Scale className="size-3" />{h.case_title}</span>
+                          <span className="inline-flex items-center gap-1"><Scale className="size-3" />{h.case_number ? `Nº ${h.case_number} — ` : ""}{h.case_title}</span>
                         )}
                         {isLawyer && h.client_name && (
                           <span className="inline-flex items-center gap-1"><User className="size-3" />{h.client_name}</span>
@@ -154,7 +156,7 @@ function PrazosPage() {
                       </div>
                       {h.notes && <p className="mt-1.5 line-clamp-2 text-xs text-muted-foreground">{h.notes}</p>}
                       {canEdit && (
-                        <div className="mt-2 flex justify-end gap-1.5">
+                        <div className="mt-2 flex justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
                           <HearingFormDialog hearing={h} />
                           <Button variant="ghost" size="icon" className="size-8 text-destructive" onClick={() => onDelete(h.id)}>
                             <Trash2 className="size-4" />
@@ -169,6 +171,8 @@ function PrazosPage() {
           })}
         </section>
       ))}
+
+      <HearingPreviewDialog hearing={preview} open={!!preview} onOpenChange={(o: boolean) => !o && setPreview(null)} />
     </div>
   );
 }

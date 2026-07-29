@@ -47,12 +47,13 @@ export async function listTimeline(caseId: string) {
 export async function listHearings(clientId?: string) {
   const { data, error } = await supabase
     .from("hearings")
-    .select("*, case:cases(title, client_id, client:clients(full_name)), client:clients(full_name)")
+    .select("*, case:cases(title, number, client_id, client:clients(full_name)), client:clients(full_name)")
     .order("hearing_date");
   if (error) throw error;
   let out = (data ?? []).map((h: any) => ({
     ...h,
     case_title: h.case?.title ?? null,
+    case_number: h.case?.number ?? null,
     client_name: h.client?.full_name ?? h.case?.client?.full_name ?? null,
     effective_client_id: h.client_id ?? h.case?.client_id ?? null,
   }));

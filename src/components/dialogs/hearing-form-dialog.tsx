@@ -37,9 +37,9 @@ export function HearingFormDialog({
     () => [...clients].sort((a: any, b: any) => (a.full_name ?? "").localeCompare(b.full_name ?? "", "pt-BR")),
     [clients],
   );
-  // Processos em ordem alfabética por título (usado na aba de marcar audiências).
+  // Processos ordenados pelo número do processo (identificação mais precisa).
   const casesSorted = useMemo(
-    () => [...cases].sort((a: any, b: any) => (a.title ?? "").localeCompare(b.title ?? "", "pt-BR")),
+    () => [...cases].sort((a: any, b: any) => (a.number ?? "").localeCompare(b.number ?? "", "pt-BR")),
     [cases],
   );
 
@@ -88,7 +88,7 @@ export function HearingFormDialog({
             <Label>Processo</Label>
             <Select value={form.case_id ?? ""} onValueChange={(v) => setForm((f: any) => ({ ...f, case_id: v }))}>
               <SelectTrigger className="mt-1.5"><SelectValue placeholder="Selecione (opcional)" /></SelectTrigger>
-              <SelectContent>{casesSorted.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>)}</SelectContent>
+              <SelectContent>{casesSorted.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.number ? `Nº ${c.number}` : "Sem número"} — {c.title}</SelectItem>)}</SelectContent>
             </Select>
           </div>
           <div className="grid grid-cols-2 gap-3">
