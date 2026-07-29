@@ -73,6 +73,7 @@ function PrazosPage() {
 
   const order = ["Hoje", "Amanhã", "Próximos 7 dias", "Este mês", "Mais adiante"];
   const isEmpty = Object.keys(grouped).length === 0;
+  const [preview, setPreview] = useState<any | null>(null);
 
   async function onDelete(id: string) {
     if (!confirm("Excluir este evento?")) return;
