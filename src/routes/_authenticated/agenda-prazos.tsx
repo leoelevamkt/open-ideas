@@ -122,7 +122,7 @@ function PrazosPage() {
           {grouped[bucket].map((h: any) => {
             const d = new Date(h.hearing_date + "T00:00:00");
             return (
-              <Card key={h.id} className="transition hover:border-gold/50">
+              <Card key={h.id} className="cursor-pointer transition hover:border-gold/50" onClick={() => setPreview(h)}>
                 <CardContent className="p-4">
                   <div className="flex items-start gap-3">
                     <div className="flex size-12 shrink-0 flex-col items-center justify-center rounded-lg bg-primary text-primary-foreground">
