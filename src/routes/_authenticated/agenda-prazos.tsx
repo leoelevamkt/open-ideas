@@ -146,7 +146,7 @@ function PrazosPage() {
                           <span className="inline-flex items-center gap-1"><MapPin className="size-3" />{h.location}</span>
                         )}
                         {h.case_title && (
-                          <span className="inline-flex items-center gap-1"><Scale className="size-3" />{h.case_title}</span>
+                          <span className="inline-flex items-center gap-1"><Scale className="size-3" />{h.case_number ? `Nº ${h.case_number} — ` : ""}{h.case_title}</span>
                         )}
                         {isLawyer && h.client_name && (
                           <span className="inline-flex items-center gap-1"><User className="size-3" />{h.client_name}</span>
@@ -154,7 +154,7 @@ function PrazosPage() {
                       </div>
                       {h.notes && <p className="mt-1.5 line-clamp-2 text-xs text-muted-foreground">{h.notes}</p>}
                       {canEdit && (
-                        <div className="mt-2 flex justify-end gap-1.5">
+                        <div className="mt-2 flex justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
                           <HearingFormDialog hearing={h} />
                           <Button variant="ghost" size="icon" className="size-8 text-destructive" onClick={() => onDelete(h.id)}>
                             <Trash2 className="size-4" />
