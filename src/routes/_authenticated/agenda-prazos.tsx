@@ -7,6 +7,7 @@ import { listHearings, getClientByUserId, deleteHearing } from "@/lib/queries";
 import { useAuth } from "@/lib/auth-context";
 import { PageHero } from "@/components/page-hero";
 import { HearingFormDialog } from "@/components/dialogs/hearing-form-dialog";
+import { HearingPreviewDialog } from "@/components/dialogs/hearing-preview-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
