@@ -88,7 +88,7 @@ export function HearingFormDialog({
             <Label>Processo</Label>
             <Select value={form.case_id ?? ""} onValueChange={(v) => setForm((f: any) => ({ ...f, case_id: v }))}>
               <SelectTrigger className="mt-1.5"><SelectValue placeholder="Selecione (opcional)" /></SelectTrigger>
-              <SelectContent>{casesSorted.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>)}</SelectContent>
+              <SelectContent>{casesSorted.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.number ? `Nº ${c.number}` : "Sem número"} — {c.title}</SelectItem>)}</SelectContent>
             </Select>
           </div>
           <div className="grid grid-cols-2 gap-3">
