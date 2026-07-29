@@ -67,7 +67,7 @@ function AgendaPage() {
         </section>
       )}
 
-      <HearingPreviewDialog hearing={preview} open={!!preview} onOpenChange={(o) => !o && setPreview(null)} />
+      <HearingPreviewDialog hearing={preview} open={!!preview} onOpenChange={(o: boolean) => !o && setPreview(null)} />
     </div>
   );
 }
