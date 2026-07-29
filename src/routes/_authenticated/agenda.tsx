@@ -91,13 +91,13 @@ function HearingCard({ h, past, canEdit, onDelete, onPreview }: { h: any; past?:
             </div>
             <p className="text-xs text-muted-foreground">{formatDate(h.hearing_date)}{h.hearing_time ? ` · ${h.hearing_time.slice(0,5)}` : ""}{!past && ` · ${relativeDate(h.hearing_date)}`}</p>
             {h.client_name && <p className="mt-0.5 truncate text-xs text-muted-foreground">Cliente: {h.client_name}</p>}
-            {h.case_title && <p className="truncate text-xs text-muted-foreground">Processo: {h.case_title}</p>}
+            {h.case_title && <p className="truncate text-xs text-muted-foreground">Processo: {h.case_number ? `Nº ${h.case_number} — ` : ""}{h.case_title}</p>}
             <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1">
               {h.location && <span className="inline-flex items-center gap-1 text-xs text-muted-foreground"><MapPin className="size-3" />{h.location}</span>}
-              {h.link && <a href={h.link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-gold-strong hover:underline"><Video className="size-3" />Acessar sala</a>}
+              {h.link && <a href={h.link} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-1 text-xs text-gold-strong hover:underline"><Video className="size-3" />Acessar sala</a>}
             </div>
             {canEdit && (
-              <div className="mt-2 flex justify-end gap-1.5">
+              <div className="mt-2 flex justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
                 <HearingFormDialog hearing={h} />
                 <Button variant="ghost" size="icon" className="size-8 text-destructive" onClick={() => onDelete?.(h.id)}>
                   <Trash2 className="size-4" />
