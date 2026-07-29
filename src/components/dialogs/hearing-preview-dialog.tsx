@@ -82,15 +82,13 @@ export function HearingPreviewDialog({
 
         <div className="flex flex-wrap justify-end gap-2 pt-2">
           {hearing.case_id && (
-            <Button asChild variant="outline" size="sm">
-              <Link
-                to={"/processos/$id" as any}
-                params={{ id: hearing.case_id } as any}
-                onClick={() => onOpenChange(false)}
-              >
-                Ver processo
-              </Link>
-            </Button>
+            <Link
+              to={"/processos/$id" as any}
+              params={{ id: hearing.case_id } as any}
+              onClick={() => onOpenChange(false)}
+            >
+              <Button variant="outline" size="sm">Ver processo</Button>
+            </Link>
           )}
           {canEdit && <HearingFormDialog hearing={hearing} />}
         </div>
