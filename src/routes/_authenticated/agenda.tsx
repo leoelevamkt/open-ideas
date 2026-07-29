@@ -46,6 +46,8 @@ function AgendaPage() {
     } catch (e: any) { toast.error(e.message); }
   }
 
+  const [preview, setPreview] = useState<any | null>(null);
+
   return (
     <div className="flex flex-col gap-4">
       <PageHero title="Agenda e audiências" subtitle="Compromissos organizados por data." />
@@ -54,22 +56,27 @@ function AgendaPage() {
       <section className="flex flex-col gap-2">
         <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Próximas</h2>
         {upcoming.length === 0 && <p className="text-sm text-muted-foreground">Nenhuma audiência agendada.</p>}
-        {upcoming.map((h: any) => <HearingCard key={h.id} h={h} canEdit={canEdit} onDelete={onDelete} />)}
+        {upcoming.map((h: any) => <HearingCard key={h.id} h={h} canEdit={canEdit} onDelete={onDelete} onPreview={setPreview} />)}
       </section>
 
       {past.length > 0 && (
         <section className="flex flex-col gap-2">
           <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Realizadas</h2>
-          {past.slice(0, 10).map((h: any) => <HearingCard key={h.id} h={h} past canEdit={canEdit} onDelete={onDelete} />)}
+          {past.slice(0, 10).map((h: any) => <HearingCard key={h.id} h={h} past canEdit={canEdit} onDelete={onDelete} onPreview={setPreview} />)}
         </section>
       )}
+
+      <HearingPreviewDialog hearing={preview} open={!!preview} onOpenChange={(o) => !o && setPreview(null)} />
     </div>
   );
 }
 
-function HearingCard({ h, past, canEdit, onDelete }: { h: any; past?: boolean; canEdit?: boolean; onDelete?: (id: string) => void }) {
+function HearingCard({ h, past, canEdit, onDelete, onPreview }: { h: any; past?: boolean; canEdit?: boolean; onDelete?: (id: string) => void; onPreview?: (h: any) => void }) {
   return (
-    <Card className={past ? "opacity-70" : ""}>
+    <Card
+      className={`cursor-pointer transition hover:border-gold/50 ${past ? "opacity-70" : ""}`}
+      onClick={() => onPreview?.(h)}
+    >
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
           <div className="flex size-11 shrink-0 flex-col items-center justify-center rounded-xl bg-primary text-primary-foreground">
