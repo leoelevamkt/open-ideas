@@ -170,6 +170,8 @@ function PrazosPage() {
           })}
         </section>
       ))}
+
+      <HearingPreviewDialog hearing={preview} open={!!preview} onOpenChange={(o: boolean) => !o && setPreview(null)} />
     </div>
   );
 }
