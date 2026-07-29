@@ -37,9 +37,9 @@ export function HearingFormDialog({
     () => [...clients].sort((a: any, b: any) => (a.full_name ?? "").localeCompare(b.full_name ?? "", "pt-BR")),
     [clients],
   );
-  // Processos em ordem alfabética por título (usado na aba de marcar audiências).
+  // Processos ordenados pelo número do processo (identificação mais precisa).
   const casesSorted = useMemo(
-    () => [...cases].sort((a: any, b: any) => (a.title ?? "").localeCompare(b.title ?? "", "pt-BR")),
+    () => [...cases].sort((a: any, b: any) => (a.number ?? "").localeCompare(b.number ?? "", "pt-BR")),
     [cases],
   );
 
