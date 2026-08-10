@@ -13,6 +13,8 @@ export const DOCUMENT_CATEGORIES = [
 
 export const HEARING_TYPES = ["Presencial","Online","Híbrida"] as const;
 
+export const AGENDA_TYPES = ["Presencial","Online","Híbrida","Prazo"] as const;
+
 export const PIX_KEY_TYPES = ["CPF","CNPJ","E-mail","Telefone","Aleatória"] as const;
 
 export type BannerData = {

@@ -17,18 +17,22 @@ export function HearingFormDialog({
   onOpenChange,
   defaultCaseId,
   defaultClientId,
+  kind = "audiencia",
 }: {
   hearing?: any;
   open?: boolean;
   onOpenChange?: (v: boolean) => void;
   defaultCaseId?: string;
   defaultClientId?: string;
+  kind?: "audiencia" | "prazo";
 }) {
+  const isPrazo = kind === "prazo" || hearing?.type === "Prazo";
   const [uOpen, setUOpen] = useState(false);
   const open = controlledOpen ?? uOpen;
   const setOpen = onOpenChange ?? setUOpen;
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<any>({});
+
   const qc = useQueryClient();
   const { data: clients = [] } = useQuery({ queryKey: ["clients", "all"], queryFn: () => listClients(), enabled: open });
   const { data: cases = [] } = useQuery({ queryKey: ["cases"], queryFn: () => listCases(), enabled: open });
@@ -46,12 +50,12 @@ export function HearingFormDialog({
   useEffect(() => {
     if (open) {
       setForm(hearing ?? {
-        type: "Presencial",
+        type: isPrazo ? "Prazo" : "Presencial",
         case_id: defaultCaseId ?? null,
         client_id: defaultClientId ?? null,
       });
     }
-  }, [open, hearing, defaultCaseId, defaultClientId]);
+  }, [open, hearing, defaultCaseId, defaultClientId, isPrazo]);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault(); setSaving(true);
@@ -60,9 +64,15 @@ export function HearingFormDialog({
     ["title","hearing_date","hearing_time","location","link","notes"].forEach(k => { const v = fd.get(k); p[k] = v ? String(v) : null; });
     p.client_id = form.client_id ?? null;
     p.case_id = form.case_id ?? null;
-    p.type = form.type ?? "Presencial";
+    p.type = isPrazo ? "Prazo" : (form.type ?? "Presencial");
     if (!p.id) delete p.id;
-    try { await saveHearing(p); toast.success(hearing ? "Audiência atualizada." : "Audiência agendada."); qc.invalidateQueries({ queryKey: ["hearings"] }); setOpen(false); }
+    try {
+      await saveHearing(p);
+      toast.success(hearing ? (isPrazo ? "Prazo atualizado." : "Audiência atualizada.") : (isPrazo ? "Prazo salvo." : "Audiência agendada."));
+      qc.invalidateQueries({ queryKey: ["hearings"] });
+      qc.invalidateQueries({ queryKey: ["hearings-all"] });
+      setOpen(false);
+    }
     catch (err: any) { toast.error(err.message); } finally { setSaving(false); }
   }
 
@@ -70,13 +80,16 @@ export function HearingFormDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       {controlledOpen === undefined && (
         <DialogTrigger asChild>
-          {hearing ? <Button variant="outline" size="sm">Editar</Button> : <Button><Plus className="mr-1 h-4 w-4" /> Nova audiência</Button>}
+          {hearing ? <Button variant="outline" size="sm">Editar</Button> : <Button><Plus className="mr-1 h-4 w-4" /> {isPrazo ? "Novo prazo" : "Nova audiência"}</Button>}
         </DialogTrigger>
       )}
       <DialogContent className="max-h-[90vh] overflow-y-auto">
-        <DialogHeader><DialogTitle>{hearing ? "Editar audiência" : "Nova audiência"}</DialogTitle><DialogDescription>Agende uma audiência ou compromisso.</DialogDescription></DialogHeader>
+        <DialogHeader>
+          <DialogTitle>{hearing ? (isPrazo ? "Editar prazo" : "Editar audiência") : (isPrazo ? "Novo prazo" : "Nova audiência")}</DialogTitle>
+          <DialogDescription>{isPrazo ? "Cadastre um prazo processual." : "Agende uma audiência ou compromisso."}</DialogDescription>
+        </DialogHeader>
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
-          <div><Label>Título *</Label><Input name="title" defaultValue={hearing?.title ?? ""} required className="mt-1.5" /></div>
+          <div><Label>{isPrazo ? "Prazo / Descrição *" : "Título *"}</Label><Input name="title" defaultValue={hearing?.title ?? ""} required className="mt-1.5" /></div>
           <div>
             <Label>Cliente *</Label>
             <Select value={form.client_id ?? ""} onValueChange={(v) => setForm((f: any) => ({ ...f, client_id: v }))}>
@@ -92,22 +105,27 @@ export function HearingFormDialog({
             </Select>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <div><Label>Data *</Label><Input type="date" name="hearing_date" defaultValue={hearing?.hearing_date ?? ""} required className="mt-1.5" /></div>
+            <div><Label>{isPrazo ? "Data limite *" : "Data *"}</Label><Input type="date" name="hearing_date" defaultValue={hearing?.hearing_date ?? ""} required className="mt-1.5" /></div>
             <div><Label>Horário</Label><Input type="time" name="hearing_time" defaultValue={hearing?.hearing_time ?? ""} className="mt-1.5" /></div>
           </div>
-          <div>
-            <Label>Modalidade</Label>
-            <Select value={form.type ?? "Presencial"} onValueChange={(v) => setForm((f: any) => ({ ...f, type: v }))}>
-              <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
-              <SelectContent>{HEARING_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
-            </Select>
-          </div>
-          <div><Label>Local</Label><Input name="location" defaultValue={hearing?.location ?? ""} className="mt-1.5" /></div>
-          <div><Label>Link (online)</Label><Input name="link" defaultValue={hearing?.link ?? ""} className="mt-1.5" /></div>
+          {!isPrazo && (
+            <>
+              <div>
+                <Label>Modalidade</Label>
+                <Select value={form.type ?? "Presencial"} onValueChange={(v) => setForm((f: any) => ({ ...f, type: v }))}>
+                  <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
+                  <SelectContent>{HEARING_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div><Label>Local</Label><Input name="location" defaultValue={hearing?.location ?? ""} className="mt-1.5" /></div>
+              <div><Label>Link (online)</Label><Input name="link" defaultValue={hearing?.link ?? ""} className="mt-1.5" /></div>
+            </>
+          )}
           <div><Label>Observações</Label><Textarea name="notes" defaultValue={hearing?.notes ?? ""} rows={3} className="mt-1.5" /></div>
           <DialogFooter><Button type="submit" disabled={saving}>{saving ? "Salvando..." : "Salvar"}</Button></DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
   );
+
 }

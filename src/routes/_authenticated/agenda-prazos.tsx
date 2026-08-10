@@ -16,7 +16,7 @@ export const Route = createFileRoute("/_authenticated/agenda-prazos")({
   component: PrazosPage,
 });
 
-const TYPE_FILTERS = ["todos", "Presencial", "Online", "Híbrida"] as const;
+const TYPE_FILTERS = ["todos", "Prazo", "Presencial", "Online", "Híbrida"] as const;
 
 function bucketLabel(dateStr: string): string {
   const today = new Date(); today.setHours(0, 0, 0, 0);
@@ -33,6 +33,7 @@ function typeColor(t?: string | null) {
   if (t === "Presencial") return "bg-blue-100 text-blue-700";
   if (t === "Online") return "bg-emerald-100 text-emerald-700";
   if (t === "Híbrida") return "bg-amber-100 text-amber-700";
+  if (t === "Prazo") return "bg-destructive/10 text-destructive";
   return "bg-muted text-muted-foreground";
 }
 
@@ -90,7 +91,12 @@ function PrazosPage() {
     <div className="flex flex-col gap-4">
       <PageHero title="Agenda de Prazos" subtitle="Próximos compromissos organizados por data." />
 
-      {canEdit && <div className="flex justify-end"><HearingFormDialog /></div>}
+      {canEdit && (
+        <div className="flex flex-wrap justify-end gap-2">
+          <HearingFormDialog kind="prazo" />
+          <HearingFormDialog />
+        </div>
+      )}
 
       <div className="flex gap-1.5 overflow-x-auto pb-1 [&::-webkit-scrollbar]:hidden">
         {TYPE_FILTERS.map(t => (
