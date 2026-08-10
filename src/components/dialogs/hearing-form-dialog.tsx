@@ -17,18 +17,22 @@ export function HearingFormDialog({
   onOpenChange,
   defaultCaseId,
   defaultClientId,
+  kind = "audiencia",
 }: {
   hearing?: any;
   open?: boolean;
   onOpenChange?: (v: boolean) => void;
   defaultCaseId?: string;
   defaultClientId?: string;
+  kind?: "audiencia" | "prazo";
 }) {
+  const isPrazo = kind === "prazo" || hearing?.type === "Prazo";
   const [uOpen, setUOpen] = useState(false);
   const open = controlledOpen ?? uOpen;
   const setOpen = onOpenChange ?? setUOpen;
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<any>({});
+
   const qc = useQueryClient();
   const { data: clients = [] } = useQuery({ queryKey: ["clients", "all"], queryFn: () => listClients(), enabled: open });
   const { data: cases = [] } = useQuery({ queryKey: ["cases"], queryFn: () => listCases(), enabled: open });
