@@ -94,7 +94,6 @@ function PrazosPage() {
       {canEdit && (
         <div className="flex flex-wrap justify-end gap-2">
           <HearingFormDialog kind="prazo" />
-          <HearingFormDialog />
         </div>
       )}
 
